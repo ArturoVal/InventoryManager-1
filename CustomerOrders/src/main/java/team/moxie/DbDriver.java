@@ -172,7 +172,7 @@ public class DbDriver {
       return new dbEntry(id, quantity, whole, sale, supplier);
     } catch (Exception ex) {
       // Print out the reason and return null
-      System.out.println(ex.toString());
+      //System.out.println(ex.toString());
       return null;
     }
   }

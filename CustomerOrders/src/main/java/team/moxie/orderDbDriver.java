@@ -180,4 +180,50 @@ public class orderDbDriver {
       return false;
     }
   }
+  
+  /**
+   * Returns the entire database
+   * PLEASE REFRAIN FROM USING UNLESS YOU HAVE TO
+   * There are a lot of items and this is very slow, only use when you absolutely need to
+   *
+   * @return LinkedList of dbEntries
+   * @see dbEntry
+   */
+  public LinkedList <orderDbEntry> returnAllEntries () {
+    // Create a list to add the entry objects to
+    LinkedList <orderDbEntry> entryList = new LinkedList <>();
+    
+    try {
+      //create and execute the statement
+      Statement statement = dbConn.createStatement();
+      ResultSet resultSet = statement.executeQuery("select * from `inv`.`orders`");
+      
+      // In this case there should only ever be one as the IDs are set to be unique
+      // TODO: 8/28/2020 Make this more robust and catch when there is more than one item
+      while (resultSet.next()) {
+        String email = resultSet.getString("email");
+       // String shippingAddress = resultSet.getString("shipping_address");
+        // TODO: 10/1/2020 `order` table does not have shipping address column, at some point,
+        //  add this to the database and retrieve it
+        String shippingAddress = "123456 Square Lane, SomeTown MI 172474";
+        String productId = resultSet.getString("productid");
+        String status = resultSet.getString("status");
+        int quantity = resultSet.getInt("quantity");
+        Date date = resultSet.getDate("date");
+      
+        orderDbEntry order = new orderDbEntry(date, email, shippingAddress, productId, quantity);
+        order.setStatus(status);
+        
+        // Create and return the entry object
+        
+        entryList.add(order);
+      }
+      return entryList;
+      //			return entryList.toArray(new dbEntry[entryList.size()]);
+    } catch (Exception ex) {
+      // Print out the reason and return null
+      System.out.println(ex.toString());
+      return null;
+    }
+  }
 }
