@@ -266,3 +266,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/maven,windows,intellij,visualstudiocode,eclipse,linux,java
 
 .idea/
+
+InventoryManager/src/main/resources/
+
+CustomerOrders/src/main/resources/
