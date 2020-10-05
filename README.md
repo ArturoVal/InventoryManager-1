@@ -1,2 +1,2 @@
-# InvMng
-Using Maven and Junit
+Main repo for CS3250, Team 3
+Contains our entire code base
