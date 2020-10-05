@@ -268,5 +268,6 @@ $RECYCLE.BIN/
 .idea/
 
 InventoryManager/src/main/resources/
-
+InventoryManager/target
 CustomerOrders/src/main/resources/
+CustomerOrders/target
