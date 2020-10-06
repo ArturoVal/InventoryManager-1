@@ -47,6 +47,37 @@ public class OrderDbEntry {
     this.ID = ID;
   }
 
+  public OrderDbEntry(
+          Date date,
+          String email,
+          String shippingAddress,
+          String productID,
+          int quantity,
+          String status) {
+    this.date = date;
+    this.email = email;
+    this.location = shippingAddress;
+    this.productID = productID;
+    this.quantity = quantity;
+    this.status = status;
+    this.ID = ID;
+  }
+
+  public OrderDbEntry(
+          Date date,
+          String email,
+          String shippingAddress,
+          String productID,
+          int quantity) {
+    this.date = date;
+    this.email = email;
+    this.location = shippingAddress;
+    this.productID = productID;
+    this.quantity = quantity;
+    this.status = statuses[1];
+    this.ID = ID;
+  }
+
   public Date getDate() {
     return date;
   }

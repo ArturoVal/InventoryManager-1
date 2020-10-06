@@ -14,7 +14,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
-  private static orderDbDriver orderDriver;
+  private static OrderDbDriver orderDriver;
   private static DbDriver productDriver;
   private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance();
   public static void main(String[] args)
@@ -28,10 +28,10 @@ public class Main {
     String password = props.getProperty("gmailPass");
 
     ReceiveMail receiver;
-    ArrayList<orderDbEntry> messages = null;
+    ArrayList<OrderDbEntry> messages = null;
 
     orderDriver =
-      new orderDbDriver(
+      new OrderDbDriver(
         props.getProperty("ip"),
         props.getProperty("port"),
         props.getProperty("dbname"),
@@ -57,7 +57,7 @@ public class Main {
       dailyReport();
   
       assert messages != null;
-      for (orderDbEntry message : messages) {
+      for (OrderDbEntry message : messages) {
         System.out.println(message);
         System.out.println(message.getDate());
 
@@ -76,7 +76,7 @@ public class Main {
         //send email confirmation
         EmailSend.SMTP_setup();
         String cx = "Hi, "+message.getEmail()+"! Thank you for your order of "+message.getQuantity()+" of "+
-                message.getProductID() +"\nYour order will be shipped to: "+ message.getShippingAddress() ;
+                message.getProductID() +"\nYour order will be shipped to: "+ message.getLocation() ;
         try {
         EmailSend.createEmail(message.getEmail(),"Order confirmation", cx);
           EmailSend.sendEmail(props); // pass in the props object so it has access to username and password
@@ -121,11 +121,11 @@ public class Main {
     }
   }
 
-  public static void updateDB(ArrayList<orderDbEntry> entries)
+  public static void updateDB(ArrayList<OrderDbEntry> entries)
     throws SQLException {
 
     System.out.println("Submitting the order.");
-    for (orderDbEntry entry : entries) {
+    for (OrderDbEntry entry : entries) {
       int result = orderDriver.createEntry(
         entry.getEmail(),
         entry.getDate(),
@@ -135,26 +135,6 @@ public class Main {
       );
 
       System.out.println("Submit result: " + result);
-      //String currEntryID = entry.getProductID();
-      //int currEntryQuantity = entry.getQuantity();
-      /* if (invDriver.searchById(currEntryID) == null) {
-        System.out.println("No match for Inventory ID " + currEntryID + ".");
-      } else {
-        dbEntry currentDBentry = invDriver.searchById(currEntryID);
-        String id = currentDBentry.getId();
-        int quantity = currentDBentry.getQuantity();
-        double wholesalePrice = currentDBentry.getWholesalePrice();
-        double salePrice = currentDBentry.getSalePrice();
-        String supplierID = currentDBentry.getSupplierId();
-        invDriver.updateEntry(
-          id,
-          (quantity - currEntryQuantity),
-          wholesalePrice,
-          salePrice,
-          supplierID
-        );
-        System.out.println(invDriver.searchById(currEntryID) + "\n\n");
-      }*/
     }
   }
   public static double sumAssets() {
@@ -169,14 +149,14 @@ public class Main {
     return value;
   }
   public static int numOrders(){
-    LinkedList<orderDbEntry> orders = orderDriver.returnAllEntries();
+    LinkedList<OrderDbEntry> orders = orderDriver.returnAllEntries();
     return orders.size();
   }
   public static double totalOrderCost(){
-    LinkedList <orderDbEntry> orders = orderDriver.returnAllEntries();
+    LinkedList <OrderDbEntry> orders = orderDriver.returnAllEntries();
     double value = 0;
     int cnt = 0;
-    for (orderDbEntry order : orders){
+    for (OrderDbEntry order : orders){
       int quantity = order.getQuantity();
       String productid = order.getProductID();
       dbEntry product = productDriver.searchById(productid);
