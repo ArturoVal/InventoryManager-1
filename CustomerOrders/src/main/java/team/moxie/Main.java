@@ -123,14 +123,6 @@ public class Main {
 
   public static void updateDB(ArrayList<orderDbEntry> entries)
     throws SQLException {
-    /*invDbDriver invDriver = new invDbDriver(
-      "50.116.26.153",
-      "3306",
-      "inv",
-      "team",
-      "GJ&8YahAh%kS#i"
-    );
-     */
 
     System.out.println("Submitting the order.");
     for (orderDbEntry entry : entries) {
