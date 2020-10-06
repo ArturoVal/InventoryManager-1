@@ -1,33 +1,50 @@
 package team.moxie;
 
-import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
-public class orderDbEntry {
+public class OrderDbEntry {
   private Date date;
   private String email;
-  private String shippingAddress;
+  private String location;
   private String productID;
   private int quantity;
-  private String[] statuses = { "ordered", "processing", "complete" };
   private String status;
+  private int ID;
 
-  public orderDbEntry(
-    java.util.Date date,
-    String email,
-    String shippingAddress,
-    String productID,
-    int quantity
-  ) {
+  private String[] statuses = { "ordered", "processing", "complete" };
+
+
+  public OrderDbEntry(
+          Date date,
+          String email,
+          String shippingAddress,
+          String productID,
+          int quantity,
+          String status,
+          int ID) {
     this.date = date;
     this.email = email;
-    this.shippingAddress = shippingAddress;
+    this.location = shippingAddress;
     this.productID = productID;
     this.quantity = quantity;
-    status = statuses[1];
+    this.status = status;
+    this.ID = ID;
+  }
+
+  public OrderDbEntry(
+          Date date,
+          String email,
+          String shippingAddress,
+          String productID,
+          int quantity,
+          int ID) {
+    this.date = date;
+    this.email = email;
+    this.location = shippingAddress;
+    this.productID = productID;
+    this.quantity = quantity;
+    this.status = statuses[1];
+    this.ID = ID;
   }
 
   public Date getDate() {
@@ -46,12 +63,12 @@ public class orderDbEntry {
     this.email = email;
   }
 
-  public String getShippingAddress() {
-    return shippingAddress;
+  public String getLocation() {
+    return location;
   }
 
-  public void setShippingAddress(String shippingAddress) {
-    this.shippingAddress = shippingAddress;
+  public void setLocation(String location) {
+    this.location = location;
   }
 
   public String getProductID() {
@@ -74,6 +91,10 @@ public class orderDbEntry {
   
   public void setStatus(String status){ this.status = status;}
 
+  public int getID() {
+    return ID;
+  }
+
   public String toString() {
     return (
       "Data Base Order Entry\n" +
@@ -84,7 +105,7 @@ public class orderDbEntry {
       email +
       "\n" +
       "Shipping Address: " +
-      shippingAddress +
+              location +
       "\n" +
       "Product ID: " +
       productID +
