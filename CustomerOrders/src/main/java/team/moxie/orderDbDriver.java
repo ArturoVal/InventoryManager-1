@@ -3,6 +3,10 @@ package team.moxie;
 import java.sql.*;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
+
+import me.tongfei.progressbar.*;
+
 
 /**
  * A driver for handling all the SCUD operations for the inventory database
@@ -89,8 +93,6 @@ public class OrderDbDriver {
       );
       statement.setString(1, status);
 
-
-
       ResultSet resultSet = statement.executeQuery();
 
       return extractEntries(resultSet);
@@ -98,6 +100,45 @@ public class OrderDbDriver {
     } catch (SQLException throwables) {
       throwables.printStackTrace();
       return null;
+    }
+  }
+
+  public int loadOrders(LinkedList<OrderDbEntry> ordersList) {
+
+    int partitionSize = 50;
+    LinkedList<List<OrderDbEntry>> partitions = new LinkedList<>();
+    for (int i = 0; i < ordersList.size(); i += partitionSize) {
+      partitions.add(ordersList.subList(i, Math.min(i + partitionSize, ordersList.size())));
+    }
+
+    try {
+      ProgressBar pb = new ProgressBar("Inserting into table:", ordersList.size());
+
+      for (List<OrderDbEntry> entryList : partitions){
+        dbConn.setAutoCommit(false);
+        PreparedStatement preparedStatement = dbConn.prepareStatement("INSERT INTO orders(date, cust_email, cust_location, product_id, product_quantity, status) VALUES (?,?,?,?,?,?)");
+        for (OrderDbEntry order : entryList) {
+          java.sql.Date sqlDate = new java.sql.Date(order.getDate().getTime());
+          preparedStatement.setDate(1, sqlDate);
+          preparedStatement.setString(2,order.getEmail());
+          preparedStatement.setString(3,order.getLocation());
+          preparedStatement.setString(4, order.getProductID());
+          preparedStatement.setInt(5, order.getQuantity());
+          preparedStatement.setString(6, order.getStatus());
+          preparedStatement.addBatch();
+        }
+        preparedStatement.executeBatch();
+        dbConn.setAutoCommit(true);
+        pb.stepBy(entryList.size());
+      }
+
+      pb.close();
+
+      return 1;
+
+    } catch (SQLException throwables) {
+      throwables.printStackTrace();
+      return 0;
     }
   }
 
@@ -210,14 +251,11 @@ public class OrderDbDriver {
       // In this case there should only ever be one as the IDs are set to be unique
       // TODO: 8/28/2020 Make this more robust and catch when there is more than one item
       while (resultSet.next()) {
-        String email = resultSet.getString("email");
-       // String shippingAddress = resultSet.getString("shipping_address");
-        // TODO: 10/1/2020 `order` table does not have shipping address column, at some point,
-        //  add this to the database and retrieve it
-        String shippingAddress = "123456 Square Lane, SomeTown MI 172474";
-        String productId = resultSet.getString("productid");
+        String email = resultSet.getString("cust_email");
+        String shippingAddress = resultSet.getString("cust_location");
+        String productId = resultSet.getString("product_id");
         String status = resultSet.getString("status");
-        int quantity = resultSet.getInt("quantity");
+        int quantity = resultSet.getInt("product_quantity");
         Date date = resultSet.getDate("date");
         int ID = resultSet.getInt("orderID");
       

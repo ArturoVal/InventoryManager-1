@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class OrderProcessor {
-    DbDriver invDriver;
+    invDbDriver invDriver;
     OrderDbDriver orderDriver;
 
     enum complete {
@@ -14,19 +14,19 @@ public class OrderProcessor {
         NO_ORDERS
     }
 
-    public OrderProcessor(DbDriver invDriver, OrderDbDriver orderDriver){
+    public OrderProcessor(invDbDriver invDriver, OrderDbDriver orderDriver){
         this.invDriver = invDriver;
         this.orderDriver = orderDriver;
     }
 
     // This is roughly about 13 entries per second, which is very slow, we should research how to speed this up,
     // To do the entire table takes about 2 minutes
-    public complete processOrders(OrderDbEntry[] ordersArray) {
+    public complete processOrders(LinkedList<OrderDbEntry> ordersArray) {
         long start = System.nanoTime();
         if (invDriver == null || orderDriver == null) {
             throw new NullPointerException("invDriver or orderDriver is null");
         }
-        if (ordersArray.length == 0) {
+        if (ordersArray.size() == 0) {
             return complete.NO_ORDERS;
         }
 
@@ -47,14 +47,6 @@ public class OrderProcessor {
             if (quantityDiff >= 0) {
                 invDriver.updateEntry(tmpInvEntry.getId(), quantityDiff, tmpInvEntry.getWholesalePrice(), tmpInvEntry.getSalePrice(), tmpInvEntry.getSupplierId());
                 orderDriver.updateStatus(entry.getID(), "complete");
-                long endInner = System.nanoTime();
-
-                double elapsedInner = (double) (endInner-startInner) / 1000000000;
-                total+=elapsedInner;
-                i++;
-                double average = (double) (total/i);
-                double perSec = 1/average;
-                System.out.println(i + "/" +ordersArray.length + "  (" + elapsedInner + " s    |    "+ perSec + " per second)");
 
             }
             else {
@@ -65,7 +57,7 @@ public class OrderProcessor {
         long end = System.nanoTime();
 
         double elapsed = (double) (end-start) / 1000000000;
-        System.out.println("It took " + elapsed + "s to process " + ordersArray.length + " orders.");
+        System.out.println("It took " + elapsed + "s to process " + ordersArray.size() + " orders.");
 
         return complete.SUCCESS;
     }
