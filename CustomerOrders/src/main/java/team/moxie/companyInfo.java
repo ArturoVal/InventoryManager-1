@@ -37,6 +37,7 @@ public class companyInfo {
     }
     public int numOrders(LinkedList <OrderDbEntry> orders){
         return orders.size();
+        //return 1529;
     }
     public double totalOrderCost(LinkedList <OrderDbEntry> orders, LinkedList <dbEntry> products){
 
@@ -56,6 +57,7 @@ public class companyInfo {
             if((++cnt) % 100 == 0){
                 System.out.println("Summing cost of order " + cnt + "/" + orders.size());
             }
+            //if(cnt>1529){return value;}
         }
         return value;
     }

@@ -4,6 +4,7 @@ import me.tongfei.progressbar.ProgressBar;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +51,14 @@ public class OrderProcessor {
         Connection dbConnInv = invDriver.getDbConn();
         Connection dbConnOrder = orderDriver.getDbConn();
 
+<<<<<<< Updated upstream
+=======
+        try {
+            PreparedStatement orderStatement = dbConnOrder.prepareStatement("");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+>>>>>>> Stashed changes
 
         for(List<OrderDbEntry> chunk : partitions) {
 
