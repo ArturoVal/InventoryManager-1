@@ -70,13 +70,10 @@ public class Simulator {
                 allOrders.add(entry);
 
                 orderNumber ++;
-                System.out.println("Order Number: " + orderNumber + "\n");
             }
             in.close();
-
-            System.out.println("Loading the orders into the database");
+            System.out.println("Order Number: " + orderNumber + "\n");
             orderDriver.loadOrders(allOrders);
-            System.out.println("Done loading the orders.\n Now processing them...");
             processor.processOrders(allOrders);
             System.out.println("Done.");
         }

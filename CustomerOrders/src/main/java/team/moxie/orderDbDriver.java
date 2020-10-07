@@ -103,6 +103,10 @@ public class OrderDbDriver {
     }
   }
 
+  public Connection getDbConn(){
+    return dbConn;
+  }
+
   public int loadOrders(LinkedList<OrderDbEntry> ordersList) {
 
     int partitionSize = 50;
@@ -112,7 +116,7 @@ public class OrderDbDriver {
     }
 
     try {
-      ProgressBar pb = new ProgressBar("Inserting into table:", ordersList.size());
+      ProgressBar pb = new ProgressBar("Inserting : ", ordersList.size());
 
       for (List<OrderDbEntry> entryList : partitions){
         dbConn.setAutoCommit(false);
