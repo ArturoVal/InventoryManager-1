@@ -94,7 +94,6 @@ public class OrderProcessor {
         }
         long end = System.nanoTime();
         double elapsed = (double) (end-start) / 1000000000;
-        System.out.println("It took "+ elapsed + "to convert the linked list.");
         return entryHashMap;
     }
 
