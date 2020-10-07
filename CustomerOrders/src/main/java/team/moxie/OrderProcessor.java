@@ -50,7 +50,6 @@ public class OrderProcessor {
         Connection dbConnInv = invDriver.getDbConn();
         Connection dbConnOrder = orderDriver.getDbConn();
 
-        PreparedStatement orderStatement = dbConnOrder.prepareStatement("")
 
         for(List<OrderDbEntry> chunk : partitions) {
 
@@ -87,7 +86,7 @@ public class OrderProcessor {
     }
 
     // Converts the linkedlist to a hashmap
-    private HashMap<String, dbEntry> convertToMap(LinkedList<dbEntry> entries) {
+    public HashMap<String, dbEntry> convertToMap(LinkedList<dbEntry> entries) {
         long start = System.nanoTime();
         HashMap<String, dbEntry> entryHashMap = new HashMap<>();
         for (dbEntry entry : entries) {

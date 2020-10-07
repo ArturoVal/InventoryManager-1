@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
   private static OrderDbDriver orderDriver;
-  private static DbDriver productDriver;
+  private static invDbDriver productDriver;
   //private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance();
   public static void main(String[] args)
     throws InterruptedException, SQLException {
@@ -38,7 +38,7 @@ public class Main {
         props.getProperty("username"),
         props.getProperty("pass")
       );
-    productDriver = new DbDriver(
+    productDriver = new invDbDriver(
         props.getProperty("ip"),
         props.getProperty("port"),
         props.getProperty("dbname"),
@@ -46,7 +46,9 @@ public class Main {
         props.getProperty("pass"));
 
     // This take a while, if it takes too long just comment it temporarily
-    companyInfo.dailyReport(orderDriver,productDriver);
+
+    companyInfo info = new companyInfo();
+    info.dailyReport(orderDriver,productDriver);
 
     while (true) {
       try {
