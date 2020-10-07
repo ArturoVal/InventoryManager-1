@@ -22,6 +22,20 @@ public class EmailSend {
         emailProperties.put("mail.smtp.starttls.enable", "True");
     }
 
+    public static void sendConfirmation(String email, int quantity, String ID, String address, Properties props){
+        //send email confirmation
+        EmailSend.SMTP_setup();
+        String cx = "Hi, "+email+"! Thank you for your order of "+quantity+" of "+
+                ID +"\nYour order will be shipped to: "+ address;
+        try {
+            EmailSend.createEmail(email,"Order confirmation", cx);
+            EmailSend.sendEmail(props);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     //passed an address and message to create new email object
     public static void createEmail(String address, String sub, String message) throws AddressException, MessagingException {
 

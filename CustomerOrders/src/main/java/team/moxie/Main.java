@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class Main {
   private static OrderDbDriver orderDriver;
   private static DbDriver productDriver;
-  private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance();
+  //private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance();
   public static void main(String[] args)
     throws InterruptedException, SQLException {
     Properties props = getProperties("target\\classes\\config.properties");
@@ -44,7 +44,9 @@ public class Main {
         props.getProperty("dbname"),
         props.getProperty("username"),
         props.getProperty("pass"));
-    
+
+    // This take a while, if it takes too long just comment it temporarily
+    companyInfo.dailyReport(orderDriver,productDriver);
 
     while (true) {
       try {
@@ -53,9 +55,7 @@ public class Main {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      // This take a while, if it takes too long just comment it temporarily
-      dailyReport();
-  
+      
       assert messages != null;
       for (OrderDbEntry message : messages) {
         System.out.println(message);
@@ -69,35 +69,12 @@ public class Main {
           message.getQuantity(),
           "processing"
         );
-
         System.out.println("Order placed.");
-
-
         //send email confirmation
-        EmailSend.SMTP_setup();
-        String cx = "Hi, "+message.getEmail()+"! Thank you for your order of "+message.getQuantity()+" of "+
-                message.getProductID() +"\nYour order will be shipped to: "+ message.getLocation() ;
-        try {
-        EmailSend.createEmail(message.getEmail(),"Order confirmation", cx);
-          EmailSend.sendEmail(props); // pass in the props object so it has access to username and password
-        } catch (MessagingException e) {
-          e.printStackTrace();
-        }
-
-        //updateDB(messages);
+        EmailSend.sendConfirmation(message.getEmail(), message.getQuantity(), message.getProductID(), message.getLocation(),props);
       }
       TimeUnit.SECONDS.sleep(5);
     }
-  }
-  
-  public static void dailyReport () {
-    System.out.println("----- Daily report -----");
-    double currentTotal = sumAssets();
-    System.out.println(" Current total assets: " + CURRENCY.format( currentTotal));
-    int num = numOrders();
-    System.out.println("There are currently " + num + " orders");
-    double orderTotal = totalOrderCost();
-    System.out.println("The orders total " + CURRENCY.format(orderTotal));
   }
   
   public static Properties getProperties(String fileName) {
@@ -120,56 +97,4 @@ public class Main {
       return null;
     }
   }
-
-  public static void updateDB(ArrayList<OrderDbEntry> entries)
-    throws SQLException {
-
-    System.out.println("Submitting the order.");
-    for (OrderDbEntry entry : entries) {
-      int result = orderDriver.createEntry(
-        entry.getEmail(),
-        entry.getDate(),
-        entry.getProductID(),
-        entry.getQuantity(),
-        "processing"
-      );
-
-      System.out.println("Submit result: " + result);
-    }
-  }
-  public static double sumAssets() {
-    LinkedList <dbEntry> products = productDriver.returnAllEntries();
-    double value = 0;
-    //System.out.println(products.size());
-    for (dbEntry product: products){
-      double cost = product.getQuantity() * product.getWholesalePrice();
-      value += cost;
-      
-    }
-    return value;
-  }
-  public static int numOrders(){
-    LinkedList<OrderDbEntry> orders = orderDriver.returnAllEntries();
-    return orders.size();
-  }
-  public static double totalOrderCost(){
-    LinkedList <OrderDbEntry> orders = orderDriver.returnAllEntries();
-    double value = 0;
-    int cnt = 0;
-    for (OrderDbEntry order : orders){
-      int quantity = order.getQuantity();
-      String productid = order.getProductID();
-      dbEntry product = productDriver.searchById(productid);
-      
-      if(product != null){
-        double cost = quantity *product.getSalePrice();
-        value += cost;
-      }
-      if((++cnt) % 100 == 0){
-        System.out.println("Summing cost of order " + cnt + "/" + orders.size());
-      }
-    }
-    return value;
-  }
-  
 }
