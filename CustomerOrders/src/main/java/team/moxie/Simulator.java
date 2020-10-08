@@ -83,8 +83,7 @@ public class Simulator {
       }
       in.close();
       System.out.println("Order Number: " + orderNumber + "\n");
-      processor.loadOrders(allOrders);
-      processor.processOrders(allOrders);
+      processor.processOrders(processor.loadOrders(allOrders));
       System.out.println("Done.");
     } catch (IOException ex) {
       System.out.println("Error: " + ex);

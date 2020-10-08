@@ -4,7 +4,6 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import me.tongfei.progressbar.ProgressBar;
 
 public class OrderProcessor {
@@ -23,7 +22,9 @@ public class OrderProcessor {
     this.orderDriver = orderDriver;
   }
 
-  public int loadOrders(LinkedList<OrderDbEntry> ordersList) {
+  public LinkedList<OrderDbEntry> loadOrders(
+    LinkedList<OrderDbEntry> ordersList
+  ) {
     Connection dbConn = orderDriver.getDbConn();
 
     try {
@@ -45,7 +46,7 @@ public class OrderProcessor {
 
         if (curr == 0) {
           String part = String.format(
-            "('%s', '%s', '%s','%s','%d','complete','%d')\n",
+            "('%s', '%s', '%s','%s','%d','processing','%d')\n",
             sqlDateString,
             order.getEmail(),
             order.getLocation(),
@@ -57,7 +58,7 @@ public class OrderProcessor {
           builderOrders.append(part);
         } else {
           String part = String.format(
-            ",('%s', '%s', '%s','%s','%d','complete','%d')\n",
+            ",('%s', '%s', '%s','%s','%d','processing','%d')\n",
             sqlDateString,
             order.getEmail(),
             order.getLocation(),
@@ -83,15 +84,18 @@ public class OrderProcessor {
       int i = 0;
       ResultSet resultSet = preparedStatement.getGeneratedKeys();
       while (resultSet.next()) {
-        ordersList.get(i).setID(resultSet.getInt(1));
+        int anInt = resultSet.getInt(1);
+
+        ordersList.get(i).setID(anInt);
+        i++;
       }
 
       progressBar.close();
 
-      return 1;
+      return ordersList;
     } catch (SQLException throwables) {
       throwables.printStackTrace();
-      return 0;
+      return null;
     }
   }
 
@@ -164,12 +168,13 @@ public class OrderProcessor {
           builderOrders.append(part);
         }
       } else {
+        System.out.println("Insufficient");
         String sqlDateString = new SimpleDateFormat("yyyy-MM-dd 00:00:00")
         .format(entry.getDate());
         //INSERT INTO tmp_orders VALUES ('yyyy-MM-dd hh:mm:ss', 'fake@fake.com', '11111','003S3SQT7KI2','10','complete','1500')
         if (i == 0) {
           String part = String.format(
-            "('%s', '%s', '%s','%s','%d','complete','%d')\n",
+            "('%s', '%s', '%s','%s','%d','insufficient','%d')\n",
             sqlDateString,
             entry.getEmail(),
             entry.getLocation(),
@@ -197,6 +202,7 @@ public class OrderProcessor {
     //pb.setExtraMessage("Insufficient: " + numOfFailed);
 
     String createOrderTable = builderOrders.toString();
+
     //UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status
 
     PreparedStatement preparedStatement = dbConnOrder.prepareStatement(
@@ -205,8 +211,14 @@ public class OrderProcessor {
     preparedStatement.execute();
 
     PreparedStatement preparedStatement2 = dbConnOrder.prepareStatement(
-      "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status"
+      "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = 'insufficient' where tmp_orders.status = 'insufficient'"
     );
+    preparedStatement2.execute();
+
+    preparedStatement2 =
+      dbConnOrder.prepareStatement(
+        "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = 'complete' where tmp_orders.status = 'complete'"
+      );
     preparedStatement2.execute();
 
     PreparedStatement preparedStatement3 = dbConnOrder.prepareStatement(
