@@ -4,6 +4,7 @@ import static team.moxie.Main.getProperties;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -12,6 +13,7 @@ public class Simulator {
   private static invDbDriver invDbDriver;
 
   public static void main(String[] args) throws SQLException {
+
     Properties props = getProperties("target\\classes\\config.properties");
     orderDriver =
       new OrderDbDriver(
@@ -83,8 +85,17 @@ public class Simulator {
       }
       in.close();
       System.out.println("Order Number: " + orderNumber + "\n");
+      long begin = System.nanoTime();
       processor.processOrders(processor.loadOrders(allOrders));
-      System.out.println("Done.");
+      long complete = System.nanoTime();
+
+      double elapsed = (double) (complete-begin)/1000000000;
+
+      BigDecimal d = new BigDecimal(elapsed);
+      String result = d.toPlainString();
+
+
+      System.out.println("Done in : " + result + " s");
     } catch (IOException ex) {
       System.out.println("Error: " + ex);
     }

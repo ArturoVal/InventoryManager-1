@@ -1,10 +1,10 @@
 package team.moxie;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
-import me.tongfei.progressbar.ProgressBar;
 
 public class OrderProcessor {
   invDbDriver invDriver;
@@ -33,10 +33,6 @@ public class OrderProcessor {
       StringBuilder builderOrders = new StringBuilder();
       builderOrders.append("INSERT INTO orders VALUES \n");
 
-      ProgressBar progressBar = new ProgressBar(
-        "Inserting : ",
-        ordersList.size()
-      );
 
       for (OrderDbEntry order : ordersList) {
         String sqlDateString = new SimpleDateFormat("yyyy-MM-dd 00:00:00")
@@ -45,52 +41,29 @@ public class OrderProcessor {
         java.sql.Date sqlDate = new java.sql.Date(order.getDate().getTime());
 
         if (curr == 0) {
-          String part = String.format(
-            "('%s', '%s', '%s','%s','%d','processing','%d')\n",
-            sqlDateString,
-            order.getEmail(),
-            order.getLocation(),
-            order.getProductID(),
-            order.getQuantity(),
-            order.getID()
-          );
-
+          String part = "('"+sqlDateString+"', '"+order.getEmail()+"', '"+order.getLocation()+"','"+order.getProductID()+"','"+order.getQuantity()+"','processing','"+order.getID()+"')\n";
           builderOrders.append(part);
         } else {
-          String part = String.format(
-            ",('%s', '%s', '%s','%s','%d','processing','%d')\n",
-            sqlDateString,
-            order.getEmail(),
-            order.getLocation(),
-            order.getProductID(),
-            order.getQuantity(),
-            order.getID()
-          );
+          String part = ",('"+sqlDateString+"', '"+order.getEmail()+"', '"+order.getLocation()+"','"+order.getProductID()+"','"+order.getQuantity()+"','processing','"+order.getID()+"')\n";
 
           builderOrders.append(part);
         }
-        progressBar.step();
         curr++;
       }
 
       String insertOrders = builderOrders.toString();
 
-      PreparedStatement preparedStatement = dbConn.prepareStatement(
-        insertOrders,
-        Statement.RETURN_GENERATED_KEYS
-      );
-      preparedStatement.execute();
+      Statement preparedStatement = dbConn.createStatement();
+      preparedStatement.execute(insertOrders, Statement.RETURN_GENERATED_KEYS);
 
       int i = 0;
       ResultSet resultSet = preparedStatement.getGeneratedKeys();
       while (resultSet.next()) {
         int anInt = resultSet.getInt(1);
-
-        ordersList.get(i).setID(anInt);
+        ordersList.iterator().next().setID(anInt);
         i++;
       }
 
-      progressBar.close();
 
       return ordersList;
     } catch (SQLException throwables) {
@@ -103,7 +76,6 @@ public class OrderProcessor {
   // To do the entire table takes about 2 minutes
   public complete processOrders(LinkedList<OrderDbEntry> ordersList)
     throws SQLException {
-    long start = System.nanoTime();
     if (invDriver == null || orderDriver == null) {
       throw new NullPointerException("invDriver or orderDriver is null");
     }
@@ -115,10 +87,6 @@ public class OrderProcessor {
       invDriver.returnAllEntries()
     );
 
-    ProgressBar progressBar = new ProgressBar(
-      "Processing :",
-      ordersList.size()
-    );
 
     Connection dbConnInv = invDriver.getDbConn();
     Connection dbConnOrder = orderDriver.getDbConn();
@@ -135,9 +103,6 @@ public class OrderProcessor {
       long startInner = System.nanoTime();
       dbEntry tmpInvEntry = entryHashMap.get(entry.getProductID());
 
-      //System.out.println(entry);
-      //System.out.println(tmpInvEntry);
-
       int quantityDiff = tmpInvEntry.getQuantity() - entry.getQuantity();
 
       if (quantityDiff >= 0) {
@@ -145,90 +110,47 @@ public class OrderProcessor {
         .format(entry.getDate());
         //INSERT INTO tmp_orders VALUES ('yyyy-MM-dd hh:mm:ss', 'fake@fake.com', '11111','003S3SQT7KI2','10','complete','1500')
         if (i == 0) {
-          String part = String.format(
-            "('%s', '%s', '%s','%s','%d','complete','%d')\n",
-            sqlDateString,
-            entry.getEmail(),
-            entry.getLocation(),
-            entry.getProductID(),
-            entry.getQuantity(),
-            entry.getID()
-          );
+          String part = "('"+sqlDateString+"', '"+entry.getEmail()+"', '"+entry.getLocation()+"','"+entry.getProductID()+"','"+entry.getQuantity()+"','complete','"+entry.getID()+"')\n";
           builderOrders.append(part);
         } else {
-          String part = String.format(
-            ",('%s', '%s', '%s','%s','%d','complete','%d')\n",
-            sqlDateString,
-            entry.getEmail(),
-            entry.getLocation(),
-            entry.getProductID(),
-            entry.getQuantity(),
-            entry.getID()
-          );
+          String part = ",('"+sqlDateString+"', '"+entry.getEmail()+"', '"+entry.getLocation()+"','"+entry.getProductID()+"','"+entry.getQuantity()+"','complete','"+entry.getID()+"')\n";
           builderOrders.append(part);
         }
       } else {
-
         String sqlDateString = new SimpleDateFormat("yyyy-MM-dd 00:00:00")
         .format(entry.getDate());
         //INSERT INTO tmp_orders VALUES ('yyyy-MM-dd hh:mm:ss', 'fake@fake.com', '11111','003S3SQT7KI2','10','complete','1500')
         if (i == 0) {
-          String part = String.format(
-            "('%s', '%s', '%s','%s','%d','insufficient','%d')\n",
-            sqlDateString,
-            entry.getEmail(),
-            entry.getLocation(),
-            entry.getProductID(),
-            entry.getQuantity(),
-            entry.getID()
-          );
+          String part = "('"+sqlDateString+"', '"+entry.getEmail()+"', '"+entry.getLocation()+"','"+entry.getProductID()+"','"+entry.getQuantity()+"','complete','"+entry.getID()+"')\n";
           builderOrders.append(part);
         } else {
-          String part = String.format(
-            ",('%s', '%s', '%s','%s','%d','insufficient','%d')\n",
-            sqlDateString,
-            entry.getEmail(),
-            entry.getLocation(),
-            entry.getProductID(),
-            entry.getQuantity(),
-            entry.getID()
-          );
+          String part = ",('"+sqlDateString+"', '"+entry.getEmail()+"', '"+entry.getLocation()+"','"+entry.getProductID()+"','"+entry.getQuantity()+"','complete','"+entry.getID()+"')\n";
           builderOrders.append(part);
         }
       }
-      progressBar.step();
       i++;
     }
-    //pb.setExtraMessage("Insufficient: " + numOfFailed);
+
 
     String createOrderTable = builderOrders.toString();
 
-    //UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status
+    long start = System.nanoTime(); ////////////////////////////
+    Statement preparedStatement = dbConnOrder.createStatement();
+    preparedStatement.execute(createOrderTable);
 
-    PreparedStatement preparedStatement = dbConnOrder.prepareStatement(
-      createOrderTable
-    );
-    preparedStatement.execute();
+    preparedStatement.execute("UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status");
 
-    PreparedStatement preparedStatement2 = dbConnOrder.prepareStatement(
-      "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status"
-    );
-    preparedStatement2.execute();
+    preparedStatement.execute("TRUNCATE TABLE tmp_orders");
+    long end = System.nanoTime(); ///////////////////////////////
 
-/*
-    preparedStatement2 =
-            dbConnOrder.prepareStatement(
-                    "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = 'complete' where tmp_orders.status = 'complete'"
-            );
-    preparedStatement2.execute();
-*/
+    double elapsed = (double) (end-start)/1000000000;
 
-    PreparedStatement preparedStatement3 = dbConnOrder.prepareStatement(
-      "TRUNCATE TABLE tmp_orders"
-    );
-    preparedStatement3.execute();
+    BigDecimal d = new BigDecimal(elapsed);
+    String result = d.toPlainString();
 
-    progressBar.close();
+
+    System.out.println("Done in : " + result + " s");
+
 
     return complete.SUCCESS;
   }
