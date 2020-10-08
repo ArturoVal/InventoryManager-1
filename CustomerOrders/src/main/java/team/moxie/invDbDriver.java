@@ -110,7 +110,7 @@ public class invDbDriver {
     }
   }
 
-  public Connection getDbConn(){
+  public Connection getDbConn() {
     return dbConn;
   }
 

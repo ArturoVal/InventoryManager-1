@@ -4,9 +4,7 @@ import java.sql.*;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-
 import me.tongfei.progressbar.*;
-
 
 /**
  * A driver for handling all the SCUD operations for the inventory database
@@ -72,14 +70,13 @@ public class OrderDbDriver {
   public OrderDbEntry[] getOrdersByDate(java.util.Date dateOfOrders) {
     try {
       PreparedStatement statement = dbConn.prepareStatement(
-              "SELECT * FROM orders WHERE date=?"
+        "SELECT * FROM orders WHERE date=?"
       );
       statement.setDate(1, new java.sql.Date(dateOfOrders.getTime()));
 
       ResultSet resultSet = statement.executeQuery();
 
       return extractEntries(resultSet);
-
     } catch (SQLException throwables) {
       throwables.printStackTrace();
       return null;
@@ -89,61 +86,21 @@ public class OrderDbDriver {
   public OrderDbEntry[] getOrdersByStatus(String status) {
     try {
       PreparedStatement statement = dbConn.prepareStatement(
-              "SELECT * FROM orders WHERE status=?"
+        "SELECT * FROM orders WHERE status=?"
       );
       statement.setString(1, status);
 
       ResultSet resultSet = statement.executeQuery();
 
       return extractEntries(resultSet);
-
     } catch (SQLException throwables) {
       throwables.printStackTrace();
       return null;
     }
   }
 
-  public Connection getDbConn(){
+  public Connection getDbConn() {
     return dbConn;
-  }
-
-  public int loadOrders(LinkedList<OrderDbEntry> ordersList) {
-
-    int partitionSize = 50;
-    LinkedList<List<OrderDbEntry>> partitions = new LinkedList<>();
-    for (int i = 0; i < ordersList.size(); i += partitionSize) {
-      partitions.add(ordersList.subList(i, Math.min(i + partitionSize, ordersList.size())));
-    }
-
-    try {
-      ProgressBar pb = new ProgressBar("Inserting : ", ordersList.size());
-
-      for (List<OrderDbEntry> entryList : partitions){
-        dbConn.setAutoCommit(false);
-        PreparedStatement preparedStatement = dbConn.prepareStatement("INSERT INTO orders(date, cust_email, cust_location, product_id, product_quantity, status) VALUES (?,?,?,?,?,?)");
-        for (OrderDbEntry order : entryList) {
-          java.sql.Date sqlDate = new java.sql.Date(order.getDate().getTime());
-          preparedStatement.setDate(1, sqlDate);
-          preparedStatement.setString(2,order.getEmail());
-          preparedStatement.setString(3,order.getLocation());
-          preparedStatement.setString(4, order.getProductID());
-          preparedStatement.setInt(5, order.getQuantity());
-          preparedStatement.setString(6, order.getStatus());
-          preparedStatement.addBatch();
-        }
-        preparedStatement.executeBatch();
-        dbConn.setAutoCommit(true);
-        pb.stepBy(entryList.size());
-      }
-
-      pb.close();
-
-      return 1;
-
-    } catch (SQLException throwables) {
-      throwables.printStackTrace();
-      return 0;
-    }
   }
 
   public int createEntry(
@@ -215,17 +172,16 @@ public class OrderDbDriver {
    * @param id             Product ID
    * @return boolean whether the operation completed successfully
    */
-  public boolean updateStatus(
-    int id,
-    String status
-  ) {
+  public boolean updateStatus(int id, String status) {
     // verify that the values are not negative
 
     try {
       //create and execute the statement
-      PreparedStatement statement = dbConn.prepareStatement("UPDATE orders set status=? where orderID=?");
+      PreparedStatement statement = dbConn.prepareStatement(
+        "UPDATE orders set status=? where orderID=?"
+      );
       statement.setString(1, status);
-      statement.setInt(2,id);
+      statement.setInt(2, id);
 
       return statement.executeUpdate() == 1;
     } catch (Exception ex) {
@@ -234,7 +190,7 @@ public class OrderDbDriver {
       return false;
     }
   }
-  
+
   /**
    * Returns the entire database
    * PLEASE REFRAIN FROM USING UNLESS YOU HAVE TO
@@ -243,15 +199,17 @@ public class OrderDbDriver {
    * @return LinkedList of dbEntries
    * @see dbEntry
    */
-  public LinkedList <OrderDbEntry> returnAllEntries () {
+  public LinkedList<OrderDbEntry> returnAllEntries() {
     // Create a list to add the entry objects to
-    LinkedList <OrderDbEntry> entryList = new LinkedList <>();
-    
+    LinkedList<OrderDbEntry> entryList = new LinkedList<>();
+
     try {
       //create and execute the statement
       Statement statement = dbConn.createStatement();
-      ResultSet resultSet = statement.executeQuery("select * from `inv`.`orders`");
-      
+      ResultSet resultSet = statement.executeQuery(
+        "select * from `inv`.`orders`"
+      );
+
       // In this case there should only ever be one as the IDs are set to be unique
       // TODO: 8/28/2020 Make this more robust and catch when there is more than one item
       while (resultSet.next()) {
@@ -262,12 +220,20 @@ public class OrderDbDriver {
         int quantity = resultSet.getInt("product_quantity");
         Date date = resultSet.getDate("date");
         int ID = resultSet.getInt("orderID");
-      
-        OrderDbEntry order = new OrderDbEntry(date, email, shippingAddress, productId, quantity, resultSet.getString("status"), ID);
+
+        OrderDbEntry order = new OrderDbEntry(
+          date,
+          email,
+          shippingAddress,
+          productId,
+          quantity,
+          resultSet.getString("status"),
+          ID
+        );
         order.setStatus(status);
-        
+
         // Create and return the entry object
-        
+
         entryList.add(order);
       }
       return entryList;
@@ -279,32 +245,33 @@ public class OrderDbDriver {
     }
   }
 
-// Takes a result set and turns it into an array
-  private OrderDbEntry[] extractEntries(ResultSet resultSet) throws SQLException {
+  // Takes a result set and turns it into an array
+  private OrderDbEntry[] extractEntries(ResultSet resultSet)
+    throws SQLException {
     long start = System.nanoTime();
 
     LinkedList<OrderDbEntry> arrayOfEntries = new LinkedList<>();
     int i = 0;
-    while(resultSet.next()) {
+    while (resultSet.next()) {
       OrderDbEntry tmpEntry = new OrderDbEntry(
-              resultSet.getDate("date"),
-              resultSet.getString("cust_email"),
-              resultSet.getString("cust_location"),
-              resultSet.getString("product_id"),
-              resultSet.getInt("product_quantity"),
-              resultSet.getString("status"),
-              resultSet.getInt("orderID"));
+        resultSet.getDate("date"),
+        resultSet.getString("cust_email"),
+        resultSet.getString("cust_location"),
+        resultSet.getString("product_id"),
+        resultSet.getInt("product_quantity"),
+        resultSet.getString("status"),
+        resultSet.getInt("orderID")
+      );
       arrayOfEntries.add(tmpEntry);
       i++;
     }
     OrderDbEntry[] array = arrayOfEntries.toArray(new OrderDbEntry[0]);
     long end = System.nanoTime();
 
-    double elapsed = (double) (end-start) / 1000000000;
+    double elapsed = (double) (end - start) / 1000000000;
 
     System.out.println("Extracted " + i + " entries in " + elapsed + " s");
 
     return array;
   }
-
 }

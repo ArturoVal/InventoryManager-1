@@ -19,7 +19,7 @@ public class ReceiveMail {
     throws MessagingException {
     Properties properties = new Properties();
     //use SMTP to send and receive emails
-    String emailPort = "587";//gmail's smtp port
+    String emailPort = "587"; //gmail's smtp port
     properties = System.getProperties();
     properties.put("mail.smtp.port", emailPort);
     properties.put("mail.smtp.host", "smtp.gmail.com");
@@ -101,7 +101,6 @@ public class ReceiveMail {
 
       //Adds each order to the ArrayList for database updates.
       entries.add(dbEntry);
-
     }
 
     emailFolder.close(false);
