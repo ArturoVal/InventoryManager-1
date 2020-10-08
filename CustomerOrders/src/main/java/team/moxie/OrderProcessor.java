@@ -168,7 +168,7 @@ public class OrderProcessor {
           builderOrders.append(part);
         }
       } else {
-        System.out.println("Insufficient");
+
         String sqlDateString = new SimpleDateFormat("yyyy-MM-dd 00:00:00")
         .format(entry.getDate());
         //INSERT INTO tmp_orders VALUES ('yyyy-MM-dd hh:mm:ss', 'fake@fake.com', '11111','003S3SQT7KI2','10','complete','1500')
@@ -211,15 +211,17 @@ public class OrderProcessor {
     preparedStatement.execute();
 
     PreparedStatement preparedStatement2 = dbConnOrder.prepareStatement(
-      "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = 'insufficient' where tmp_orders.status = 'insufficient'"
+      "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status"
     );
     preparedStatement2.execute();
 
+/*
     preparedStatement2 =
-      dbConnOrder.prepareStatement(
-        "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = 'complete' where tmp_orders.status = 'complete'"
-      );
+            dbConnOrder.prepareStatement(
+                    "UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = 'complete' where tmp_orders.status = 'complete'"
+            );
     preparedStatement2.execute();
+*/
 
     PreparedStatement preparedStatement3 = dbConnOrder.prepareStatement(
       "TRUNCATE TABLE tmp_orders"
