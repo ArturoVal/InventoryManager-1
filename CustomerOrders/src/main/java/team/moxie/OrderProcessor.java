@@ -27,33 +27,66 @@ public class OrderProcessor {
     Connection dbConn = orderDriver.getDbConn();
 
     try {
-      ProgressBar pb = new ProgressBar("Inserting : ", ordersList.size());
 
       int curr = 0;
+
+      StringBuilder builderOrders = new StringBuilder();
+      builderOrders.append("INSERT INTO orders VALUES \n");
+
+      ProgressBar progressBar = new ProgressBar("Inserting : ",ordersList.size());
+
       for (OrderDbEntry order : ordersList) {
-        PreparedStatement preparedStatement = dbConn.prepareStatement(
-          "INSERT INTO orders(date, cust_email, cust_location, product_id, product_quantity, status) VALUES (?,?,?,?,?,?)",
-          Statement.RETURN_GENERATED_KEYS
-        );
+
+        String sqlDateString = new SimpleDateFormat("yyyy-MM-dd 00:00:00")
+                .format(order.getDate());
 
         java.sql.Date sqlDate = new java.sql.Date(order.getDate().getTime());
-        preparedStatement.setDate(1, sqlDate);
-        preparedStatement.setString(2, order.getEmail());
-        preparedStatement.setString(3, order.getLocation());
-        preparedStatement.setString(4, order.getProductID());
-        preparedStatement.setInt(5, order.getQuantity());
-        preparedStatement.setString(6, order.getStatus());
-        preparedStatement.execute();
 
-        ResultSet resultSet = preparedStatement.getGeneratedKeys();
-        resultSet.next();
+       if (curr == 0) {
+         String part = String.format(
+                 "('%s', '%s', '%s','%s','%d','complete','%d')\n",
+                 sqlDateString,
+                 order.getEmail(),
+                 order.getLocation(),
+                 order.getProductID(),
+                 order.getQuantity(),
+                 order.getID()
+         );
 
-        order.setID(resultSet.getInt(1));
+        builderOrders.append(part);
+
+       } else {
+         String part = String.format(
+                 ",('%s', '%s', '%s','%s','%d','complete','%d')\n",
+                 sqlDateString,
+                 order.getEmail(),
+                 order.getLocation(),
+                 order.getProductID(),
+                 order.getQuantity(),
+                 order.getID()
+         );
+
+
+         builderOrders.append(part);
+
+       }
+        progressBar.step();
         curr++;
-        System.out.println(order);
-        pb.step();
       }
-      pb.close();
+
+      String insertOrders = builderOrders.toString();
+
+      PreparedStatement preparedStatement = dbConn.prepareStatement(insertOrders, Statement.RETURN_GENERATED_KEYS);
+      preparedStatement.execute();
+
+      int i = 0;
+      ResultSet resultSet = preparedStatement.getGeneratedKeys();
+      while (resultSet.next()) {
+        ordersList.get(i).setID(resultSet.getInt(1));
+      }
+
+      progressBar.close();
+
       return 1;
     } catch (SQLException throwables) {
       throwables.printStackTrace();
@@ -76,7 +109,8 @@ public class OrderProcessor {
       invDriver.returnAllEntries()
     );
 
-    ProgressBar pb = new ProgressBar("Processing :", ordersList.size());
+    ProgressBar progressBar = new ProgressBar("Processing :",ordersList.size());
+
 
     Connection dbConnInv = invDriver.getDbConn();
     Connection dbConnOrder = orderDriver.getDbConn();
@@ -99,7 +133,7 @@ public class OrderProcessor {
       int quantityDiff = tmpInvEntry.getQuantity() - entry.getQuantity();
 
       if (quantityDiff >= 0) {
-        String sqlDateString = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+        String sqlDateString = new SimpleDateFormat("yyyy-MM-dd 00:00:00")
         .format(entry.getDate());
         //INSERT INTO tmp_orders VALUES ('yyyy-MM-dd hh:mm:ss', 'fake@fake.com', '11111','003S3SQT7KI2','10','complete','1500')
         if (i == 0) {
@@ -153,18 +187,25 @@ public class OrderProcessor {
           builderOrders.append(part);
         }
       }
+      progressBar.step();
       i++;
-      pb.step();
     }
     //pb.setExtraMessage("Insufficient: " + numOfFailed);
 
     String createOrderTable = builderOrders.toString();
+    //UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status
 
 
     PreparedStatement preparedStatement = dbConnOrder.prepareStatement(createOrderTable);
     preparedStatement.execute();
 
-    System.out.println(createOrderTable);
+    PreparedStatement preparedStatement2 = dbConnOrder.prepareStatement("UPDATE orders INNER JOIN tmp_orders ON orders.orderID = tmp_orders.orderID SET orders.status = tmp_orders.status");
+    preparedStatement2.execute();
+
+    PreparedStatement preparedStatement3 = dbConnOrder.prepareStatement("TRUNCATE TABLE tmp_orders");
+    preparedStatement3.execute();
+
+    progressBar.close();
 
     return complete.SUCCESS;
   }
