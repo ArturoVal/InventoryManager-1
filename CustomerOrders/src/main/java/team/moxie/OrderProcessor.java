@@ -5,6 +5,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OrderProcessor {
   invDbDriver invDriver;
@@ -128,16 +129,36 @@ public class OrderProcessor {
 
     ///////////////////////////////////////// This is the loop that ////////////////////////////////////////////////////
     /////////////////////////////////////////   does everything     ////////////////////////////////////////////////////
+    // Add the entries into a hashmap
+    HashMap<String, dbEntry> setOfProducts = new HashMap<>();
     int i = 0;
     for (OrderDbEntry entry : ordersList) {
       dbEntry tmpInvEntry = entryHashMap.get(entry.getProductID());
+      boolean containsProduct = setOfProducts.containsKey(entry.getProductID());
+
+      if (!containsProduct) {
+        int quantityDiff = tmpInvEntry.getQuantity() - entry.getQuantity();
+        tmpInvEntry.setQuantity(quantityDiff);
+        setOfProducts.put(entry.getProductID(), tmpInvEntry);
+      } else {
+        dbEntry tmp = setOfProducts.get(entry.getProductID());
+        int quantity = tmp.getQuantity();
+        tmp.setQuantity(quantity - entry.getQuantity());
+      }
 
       int quantityDiff = tmpInvEntry.getQuantity() - entry.getQuantity();
-
       appendOrderSQLPart(builderOrders, i, entry, quantityDiff);
-      appendInvSQLPart(builderInv, i, tmpInvEntry, quantityDiff);
+
       i++;
     }
+
+    AtomicInteger finalI = new AtomicInteger(0);
+    setOfProducts.forEach(
+      (key, value) -> {
+        buildInvString(builderInv, finalI.get(), value, value.getQuantity());
+        finalI.getAndIncrement();
+      }
+    );
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -146,6 +167,7 @@ public class OrderProcessor {
 
     long start = System.nanoTime(); ////////////////////////////
     Statement statement = dbConnOrder.createStatement();
+    System.out.println(createInvTable);
 
     statement.execute(createOrderTable);
     statement.execute(createInvTable);
