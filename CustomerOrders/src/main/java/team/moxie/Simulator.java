@@ -13,7 +13,6 @@ public class Simulator {
   private static invDbDriver invDbDriver;
 
   public static void main(String[] args) throws SQLException {
-
     Properties props = getProperties("target\\classes\\config.properties");
     orderDriver =
       new OrderDbDriver(
@@ -89,11 +88,10 @@ public class Simulator {
       processor.processOrders(processor.loadOrders(allOrders));
       long complete = System.nanoTime();
 
-      double elapsed = (double) (complete-begin)/1000000000;
+      double elapsed = (double) (complete - begin) / 1000000000;
 
       BigDecimal d = new BigDecimal(elapsed);
       String result = d.toPlainString();
-
 
       System.out.println("Done in : " + result + " s");
     } catch (IOException ex) {
