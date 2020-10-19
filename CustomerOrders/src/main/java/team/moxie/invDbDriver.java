@@ -110,6 +110,10 @@ public class invDbDriver {
     }
   }
 
+  public Connection getDbConn() {
+    return dbConn;
+  }
+
   /**
    * Deletes the entry with the given ID
    *

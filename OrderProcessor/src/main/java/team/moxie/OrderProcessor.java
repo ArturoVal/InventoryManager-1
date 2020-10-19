@@ -19,6 +19,8 @@ public class OrderProcessor {
         this.orderDriver = orderDriver;
     }
 
+    // This is roughly about 13 entries per second, which is very slow, we should research how to speed this up,
+    // To do the entire table takes about 2 minutes
     public complete processOrders(OrderDbEntry[] ordersArray) {
         long start = System.nanoTime();
         if (invDriver == null || orderDriver == null) {
@@ -30,16 +32,33 @@ public class OrderProcessor {
 
         HashMap<String, dbEntry> entryHashMap = convertToMap(invDriver.returnAllEntries());
 
+        int i = 0;
+        double total = 0;
+
         for (OrderDbEntry entry : ordersArray) {
+            long startInner = System.nanoTime();
             dbEntry tmpInvEntry = entryHashMap.get(entry.getProductID());
 
-            int quantityDiff = entry.getQuantity()-tmpInvEntry.getQuantity();
+            //System.out.println(entry);
+            //System.out.println(tmpInvEntry);
+
+            int quantityDiff = tmpInvEntry.getQuantity()-entry.getQuantity();
 
             if (quantityDiff >= 0) {
+                invDriver.updateEntry(tmpInvEntry.getId(), quantityDiff, tmpInvEntry.getWholesalePrice(), tmpInvEntry.getSalePrice(), tmpInvEntry.getSupplierId());
+                orderDriver.updateStatus(entry.getID(), "complete");
+                long endInner = System.nanoTime();
+
+                double elapsedInner = (double) (endInner-startInner) / 1000000000;
+                total+=elapsedInner;
+                i++;
+                double average = (double) (total/i);
+                double perSec = 1/average;
+                System.out.println(i + "/" +ordersArray.length + "  (" + elapsedInner + " s    |    "+ perSec + " per second)");
 
             }
             else {
-
+                System.out.println("Not enough quantity");
             }
         }
 

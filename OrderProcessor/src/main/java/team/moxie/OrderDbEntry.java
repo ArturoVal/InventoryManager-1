@@ -9,6 +9,7 @@ public class OrderDbEntry {
   private String productID;
   private int quantity;
   private String status;
+  private int ID;
 
   private String[] statuses = { "ordered", "processing", "complete" };
 
@@ -19,13 +20,15 @@ public class OrderDbEntry {
           String shippingAddress,
           String productID,
           int quantity,
-          String status) {
+          String status,
+          int ID) {
     this.date = date;
     this.email = email;
     this.location = shippingAddress;
     this.productID = productID;
     this.quantity = quantity;
     this.status = status;
+    this.ID = ID;
   }
 
   public OrderDbEntry(
@@ -33,13 +36,15 @@ public class OrderDbEntry {
           String email,
           String shippingAddress,
           String productID,
-          int quantity) {
+          int quantity,
+          int ID) {
     this.date = date;
     this.email = email;
     this.location = shippingAddress;
     this.productID = productID;
     this.quantity = quantity;
     this.status = statuses[1];
+    this.ID = ID;
   }
 
   public Date getDate() {
@@ -85,6 +90,10 @@ public class OrderDbEntry {
   public String getStatus(){return status;}
   
   public void setStatus(String status){ this.status = status;}
+
+  public int getID() {
+    return ID;
+  }
 
   public String toString() {
     return (

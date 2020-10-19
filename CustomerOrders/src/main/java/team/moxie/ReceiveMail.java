@@ -19,7 +19,7 @@ public class ReceiveMail {
     throws MessagingException {
     Properties properties = new Properties();
     //use SMTP to send and receive emails
-    String emailPort = "587";//gmail's smtp port
+    String emailPort = "587"; //gmail's smtp port
     properties = System.getProperties();
     properties.put("mail.smtp.port", emailPort);
     properties.put("mail.smtp.host", "smtp.gmail.com");
@@ -38,14 +38,14 @@ public class ReceiveMail {
     emailFolder.open(Folder.READ_ONLY);
   }
 
-  public ArrayList<orderDbEntry> getMessages()
+  public ArrayList<OrderDbEntry> getMessages()
     throws MessagingException, IOException {
     Message[] messages = emailFolder.getMessages();
     System.out.println(
       "You have " + messages.length + " new order(s) submitted via email."
     );
     String[] entry = new String[5];
-    ArrayList<orderDbEntry> entries = new ArrayList<>();
+    ArrayList<OrderDbEntry> entries = new ArrayList<>();
     int numberOfEntries = 0;
 
     for (Message message : messages) {
@@ -91,7 +91,7 @@ public class ReceiveMail {
 
       int Quantity = Integer.parseInt(entry[4]);
 
-      orderDbEntry dbEntry = new orderDbEntry(
+      OrderDbEntry dbEntry = new OrderDbEntry(
         date,
         entry[1],
         entry[2],
@@ -101,7 +101,6 @@ public class ReceiveMail {
 
       //Adds each order to the ArrayList for database updates.
       entries.add(dbEntry);
-
     }
 
     emailFolder.close(false);

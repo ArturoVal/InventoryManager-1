@@ -168,38 +168,21 @@ public class OrderDbDriver {
    * Updates the entry with given ID and info
    *
    * @param id             Product ID
-   * @param quantity       Quantity of the product
-   * @param wholesalePrice Wholesale price of the product
-   * @param salePrice      Sale price of the product
-   * @param supplierId     ID of the supplier for the item
    * @return boolean whether the operation completed successfully
    */
-  public boolean updateEntry(
-    String id,
-    int quantity,
-    double wholesalePrice,
-    double salePrice,
-    String supplierId
+  public boolean updateStatus(
+    int id,
+    String status
   ) {
-    // cannot be longer than 12 char
-    if (id.length() > 12 || supplierId.length() > 12) return false;
     // verify that the values are not negative
-    if (quantity < 0 || wholesalePrice < 0 || salePrice < 0) return false;
 
     try {
       //create and execute the statement
-      Statement statement = dbConn.createStatement();
-      int result = statement.executeUpdate(
-        String.format(
-          "update inv.inventory set quantity = %d, wholesale_cost = %s, sale_price = %s where product_id = '%s'",
-          quantity,
-          wholesalePrice,
-          salePrice,
-          id
-        )
-      );
+      PreparedStatement statement = dbConn.prepareStatement("UPDATE orders set status=? where orderID=?");
+      statement.setString(1, status);
+      statement.setInt(2,id);
 
-      return result == 1;
+      return statement.executeUpdate() == 1;
     } catch (Exception ex) {
       // Print out the reason and return null
       System.out.println(ex.toString());
@@ -236,8 +219,9 @@ public class OrderDbDriver {
         String status = resultSet.getString("status");
         int quantity = resultSet.getInt("quantity");
         Date date = resultSet.getDate("date");
+        int ID = resultSet.getInt("orderID");
       
-        OrderDbEntry order = new OrderDbEntry(date, email, shippingAddress, productId, quantity, resultSet.getString("status"));
+        OrderDbEntry order = new OrderDbEntry(date, email, shippingAddress, productId, quantity, resultSet.getString("status"), ID);
         order.setStatus(status);
         
         // Create and return the entry object
@@ -266,7 +250,8 @@ public class OrderDbDriver {
               resultSet.getString("cust_location"),
               resultSet.getString("product_id"),
               resultSet.getInt("product_quantity"),
-              resultSet.getString("status"));
+              resultSet.getString("status"),
+              resultSet.getInt("orderID"));
       arrayOfEntries.add(tmpEntry);
       i++;
     }

@@ -3,13 +3,15 @@ package team.moxie;
 import java.sql.*;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
+import me.tongfei.progressbar.*;
 
 /**
  * A driver for handling all the SCUD operations for the inventory database
  *
  * @author Dustin
  */
-public class orderDbDriver {
+public class OrderDbDriver {
   /**
    * The connection to the database
    * @see DriverManager
@@ -27,7 +29,7 @@ public class orderDbDriver {
    * @throws SQLException Thrown if the database connection fails
    */
 
-  public orderDbDriver(
+  public OrderDbDriver(
     String hostIP,
     String hostPort,
     String databaseName,
@@ -54,7 +56,7 @@ public class orderDbDriver {
    * @param hostPort      Port of the database
    * @param databaseName  Name of the database
    * @return A formated connection string
-   * @see orderDbDriver
+   * @see OrderDbDriver
    * @see DriverManager
    */
   private String buildConnString(
@@ -65,16 +67,42 @@ public class orderDbDriver {
     return "jdbc:mysql://" + hostIP + ":" + hostPort + "/" + databaseName;
   }
 
-  /**
-   * Creates an entry in the database with the given data
-   *
-   * @param id             Product ID
-   * @param quantity       Quantity of the product
-   * @param wholesalePrice Wholesale price of the product
-   * @param salePrice      Sale price of the product
-   * @param supplierId     ID of the supplier for the item
-   * @return Boolean for whether the operation was successful
-   */
+  public OrderDbEntry[] getOrdersByDate(java.util.Date dateOfOrders) {
+    try {
+      PreparedStatement statement = dbConn.prepareStatement(
+        "SELECT * FROM orders WHERE date=?"
+      );
+      statement.setDate(1, new java.sql.Date(dateOfOrders.getTime()));
+
+      ResultSet resultSet = statement.executeQuery();
+
+      return extractEntries(resultSet);
+    } catch (SQLException throwables) {
+      throwables.printStackTrace();
+      return null;
+    }
+  }
+
+  public OrderDbEntry[] getOrdersByStatus(String status) {
+    try {
+      PreparedStatement statement = dbConn.prepareStatement(
+        "SELECT * FROM orders WHERE status=?"
+      );
+      statement.setString(1, status);
+
+      ResultSet resultSet = statement.executeQuery();
+
+      return extractEntries(resultSet);
+    } catch (SQLException throwables) {
+      throwables.printStackTrace();
+      return null;
+    }
+  }
+
+  public Connection getDbConn() {
+    return dbConn;
+  }
+
   public int createEntry(
     String email,
     Date date,
@@ -90,7 +118,7 @@ public class orderDbDriver {
     try {
       //create and execute the statement
       PreparedStatement statement = dbConn.prepareStatement(
-        "insert into inv.orders(email, date, productid, quantity, status) values (?,?,?,?,?)"
+        "insert into inv.orders(cust_email, date, product_id, product_quantity, status) values (?,?,?,?,?)"
       );
 
       java.sql.Date sqlDate = new java.sql.Date(date.getTime());
@@ -142,45 +170,27 @@ public class orderDbDriver {
    * Updates the entry with given ID and info
    *
    * @param id             Product ID
-   * @param quantity       Quantity of the product
-   * @param wholesalePrice Wholesale price of the product
-   * @param salePrice      Sale price of the product
-   * @param supplierId     ID of the supplier for the item
    * @return boolean whether the operation completed successfully
    */
-  public boolean updateEntry(
-    String id,
-    int quantity,
-    double wholesalePrice,
-    double salePrice,
-    String supplierId
-  ) {
-    // cannot be longer than 12 char
-    if (id.length() > 12 || supplierId.length() > 12) return false;
+  public boolean updateStatus(int id, String status) {
     // verify that the values are not negative
-    if (quantity < 0 || wholesalePrice < 0 || salePrice < 0) return false;
 
     try {
       //create and execute the statement
-      Statement statement = dbConn.createStatement();
-      int result = statement.executeUpdate(
-        String.format(
-          "update inv.inventory set quantity = %d, wholesale_cost = %s, sale_price = %s where product_id = '%s'",
-          quantity,
-          wholesalePrice,
-          salePrice,
-          id
-        )
+      PreparedStatement statement = dbConn.prepareStatement(
+        "UPDATE orders set status=? where orderID=?"
       );
+      statement.setString(1, status);
+      statement.setInt(2, id);
 
-      return result == 1;
+      return statement.executeUpdate() == 1;
     } catch (Exception ex) {
       // Print out the reason and return null
       System.out.println(ex.toString());
       return false;
     }
   }
-  
+
   /**
    * Returns the entire database
    * PLEASE REFRAIN FROM USING UNLESS YOU HAVE TO
@@ -189,33 +199,41 @@ public class orderDbDriver {
    * @return LinkedList of dbEntries
    * @see dbEntry
    */
-  public LinkedList <orderDbEntry> returnAllEntries () {
+  public LinkedList<OrderDbEntry> returnAllEntries() {
     // Create a list to add the entry objects to
-    LinkedList <orderDbEntry> entryList = new LinkedList <>();
-    
+    LinkedList<OrderDbEntry> entryList = new LinkedList<>();
+
     try {
       //create and execute the statement
       Statement statement = dbConn.createStatement();
-      ResultSet resultSet = statement.executeQuery("select * from `inv`.`orders`");
-      
+      ResultSet resultSet = statement.executeQuery(
+        "select * from `inv`.`orders`"
+      );
+
       // In this case there should only ever be one as the IDs are set to be unique
       // TODO: 8/28/2020 Make this more robust and catch when there is more than one item
       while (resultSet.next()) {
-        String email = resultSet.getString("email");
-       // String shippingAddress = resultSet.getString("shipping_address");
-        // TODO: 10/1/2020 `order` table does not have shipping address column, at some point,
-        //  add this to the database and retrieve it
-        String shippingAddress = "123456 Square Lane, SomeTown MI 172474";
-        String productId = resultSet.getString("productid");
+        String email = resultSet.getString("cust_email");
+        String shippingAddress = resultSet.getString("cust_location");
+        String productId = resultSet.getString("product_id");
         String status = resultSet.getString("status");
-        int quantity = resultSet.getInt("quantity");
+        int quantity = resultSet.getInt("product_quantity");
         Date date = resultSet.getDate("date");
-      
-        orderDbEntry order = new orderDbEntry(date, email, shippingAddress, productId, quantity);
+        int ID = resultSet.getInt("orderID");
+
+        OrderDbEntry order = new OrderDbEntry(
+          date,
+          email,
+          shippingAddress,
+          productId,
+          quantity,
+          resultSet.getString("status"),
+          ID
+        );
         order.setStatus(status);
-        
+
         // Create and return the entry object
-        
+
         entryList.add(order);
       }
       return entryList;
@@ -225,5 +243,35 @@ public class orderDbDriver {
       System.out.println(ex.toString());
       return null;
     }
+  }
+
+  // Takes a result set and turns it into an array
+  private OrderDbEntry[] extractEntries(ResultSet resultSet)
+    throws SQLException {
+    long start = System.nanoTime();
+
+    LinkedList<OrderDbEntry> arrayOfEntries = new LinkedList<>();
+    int i = 0;
+    while (resultSet.next()) {
+      OrderDbEntry tmpEntry = new OrderDbEntry(
+        resultSet.getDate("date"),
+        resultSet.getString("cust_email"),
+        resultSet.getString("cust_location"),
+        resultSet.getString("product_id"),
+        resultSet.getInt("product_quantity"),
+        resultSet.getString("status"),
+        resultSet.getInt("orderID")
+      );
+      arrayOfEntries.add(tmpEntry);
+      i++;
+    }
+    OrderDbEntry[] array = arrayOfEntries.toArray(new OrderDbEntry[0]);
+    long end = System.nanoTime();
+
+    double elapsed = (double) (end - start) / 1000000000;
+
+    System.out.println("Extracted " + i + " entries in " + elapsed + " s");
+
+    return array;
   }
 }
