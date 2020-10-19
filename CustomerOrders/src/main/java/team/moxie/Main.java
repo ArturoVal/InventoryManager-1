@@ -4,18 +4,21 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.mail.MessagingException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import javax.mail.MessagingException;
 
 public class Main {
   private static OrderDbDriver orderDriver;
   private static invDbDriver productDriver;
+
   //private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance();
   public static void main(String[] args)
     throws InterruptedException, SQLException {
@@ -30,6 +33,8 @@ public class Main {
     ReceiveMail receiver;
     ArrayList<OrderDbEntry> messages = null;
 
+    java.util.Date date = Calendar.getInstance().getTime();
+
     orderDriver =
       new OrderDbDriver(
         props.getProperty("ip"),
@@ -38,17 +43,19 @@ public class Main {
         props.getProperty("username"),
         props.getProperty("pass")
       );
-    productDriver = new invDbDriver(
+    productDriver =
+      new invDbDriver(
         props.getProperty("ip"),
         props.getProperty("port"),
         props.getProperty("dbname"),
         props.getProperty("username"),
-        props.getProperty("pass"));
+        props.getProperty("pass")
+      );
 
     // This take a while, if it takes too long just comment it temporarily
 
     companyInfo info = new companyInfo();
-    info.dailyReport(orderDriver,productDriver);
+    info.dailyReport(orderDriver, productDriver);
 
     while (true) {
       try {
@@ -57,7 +64,7 @@ public class Main {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      
+
       assert messages != null;
       for (OrderDbEntry message : messages) {
         System.out.println(message);
@@ -73,12 +80,18 @@ public class Main {
         );
         System.out.println("Order placed.");
         //send email confirmation
-        EmailSend.sendConfirmation(message.getEmail(), message.getQuantity(), message.getProductID(), message.getLocation(),props);
+        EmailSend.sendConfirmation(
+          message.getEmail(),
+          message.getQuantity(),
+          message.getProductID(),
+          message.getLocation(),
+          props
+        );
       }
       TimeUnit.SECONDS.sleep(5);
     }
   }
-  
+
   public static Properties getProperties(String fileName) {
     String dir = System.getProperty("user.dir");
     System.out.println("Reading properties from: " + dir + fileName);
