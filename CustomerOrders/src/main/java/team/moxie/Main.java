@@ -54,38 +54,49 @@ public class Main {
 
     // This take a while, if it takes too long just comment it temporarily
 
-    companyInfo info = new companyInfo();
-    info.dailyReport(orderDriver, productDriver);
+    //companyInfo info = new companyInfo();
+    //info.dailyReport(orderDriver, productDriver);
 
     while (true) {
+      boolean a;
+
       try {
         receiver = new ReceiveMail(host, mailStoreType, username, password);
         messages = receiver.getMessages();
       } catch (Exception e) {
         e.printStackTrace();
       }
+      a = ReceiveMail.isOrder;
+      if(a){
+        assert messages != null;
+        for (OrderDbEntry message : messages) {
+          System.out.println(message);
+          System.out.println(message.getDate());
 
-      assert messages != null;
-      for (OrderDbEntry message : messages) {
-        System.out.println(message);
-        System.out.println(message.getDate());
-
-        System.out.println("Placing the order...");
-        orderDriver.createEntry(
-          message.getEmail(),
-          message.getDate(),
-          message.getProductID(),
-          message.getQuantity(),
-          "processing"
-        );
-        System.out.println("Order placed.");
-        //send email confirmation
+          System.out.println("Placing the order...");
+          orderDriver.createEntry(
+                  message.getEmail(),
+                  message.getDate(),
+                  message.getProductID(),
+                  message.getQuantity(),
+                  "processing"
+          );
+          System.out.println("Order placed.");
+          //send email confirmation
+          EmailSend.sendConfirmation(
+                  message.getEmail(),
+                  message.getQuantity(),
+                  message.getProductID(),
+                  message.getLocation(),
+                  props
+          );
+        }
+      }
+      a = ReceiveMail.isCancel;
+      if(a){
         EmailSend.sendConfirmation(
-          message.getEmail(),
-          message.getQuantity(),
-          message.getProductID(),
-          message.getLocation(),
-          props
+                message.getEmail(),
+                props
         );
       }
       TimeUnit.SECONDS.sleep(5);

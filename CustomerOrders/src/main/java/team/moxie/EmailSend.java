@@ -49,6 +49,25 @@ public class EmailSend {
     }
   }
 
+  public static void sendCancellation(
+          String email,
+          Properties props
+  ) {
+    //send email confirmation
+    EmailSend.SMTP_setup();
+    String cx =
+            "Hi, " +
+                    email +
+                    "! Thank you for your order of ";
+    try {
+      EmailSend.createEmail(email, "Order confirmation", cx);
+      EmailSend.sendEmail(props);
+    } catch (MessagingException e) {
+      e.printStackTrace();
+    }
+  }
+
+
   //passed an address and message to create new email object
   public static void createEmail(String address, String sub, String message)
     throws AddressException, MessagingException {
