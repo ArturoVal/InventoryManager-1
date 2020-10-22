@@ -51,16 +51,23 @@ public class EmailSend {
 
   public static void sendCancellation(
           String email,
+          int quantity,
+          String ID,
+          String address,
           Properties props
   ) {
-    //send email confirmation
+    //send email cancellation
     EmailSend.SMTP_setup();
     String cx =
             "Hi, " +
-                    email +
-                    "! Thank you for your order of ";
+            email +
+            ". We will cancel your order of " +
+            quantity +
+            " of " +
+            ID;
+
     try {
-      EmailSend.createEmail(email, "Order confirmation", cx);
+      EmailSend.createEmail(email, "Cancellation confirmation", cx);
       EmailSend.sendEmail(props);
     } catch (MessagingException e) {
       e.printStackTrace();

@@ -63,8 +63,9 @@ public class ReceiveMail {
       int emailIndex = email.indexOf("<") + 1;
       email = email.substring(emailIndex, email.length() - 1);
       Date date = message.getSentDate();
-      if(sub.equals("PLACE ORDER")) {
-        isOrder=true;
+      if(sub.equals("PLACE ORDER"))   isOrder=true;
+      else if(sub.equals("CANCEL ORDER")) isCancel = true;
+
         entry[1] = email;
         String[] content = bp.getContent().toString().toUpperCase().split(",");
 
@@ -106,11 +107,8 @@ public class ReceiveMail {
         //Adds each order to the ArrayList for database updates.
         entries.add(dbEntry);
       }
-      else if(sub.equals("CANCEL ORDER")){
-        //sendCancellation();
-        isCancel = true;
-      }
-    }
+
+
 
     emailFolder.close(false);
     emailStore.close();

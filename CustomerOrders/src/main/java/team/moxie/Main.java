@@ -67,12 +67,12 @@ public class Main {
         e.printStackTrace();
       }
       a = ReceiveMail.isOrder;
-      if(a){
+
         assert messages != null;
         for (OrderDbEntry message : messages) {
           System.out.println(message);
           System.out.println(message.getDate());
-
+          if(a){
           System.out.println("Placing the order...");
           orderDriver.createEntry(
                   message.getEmail(),
@@ -91,14 +91,19 @@ public class Main {
                   props
           );
         }
+          a = ReceiveMail.isCancel;
+          if(a){
+            EmailSend.sendCancellation(
+                    message.getEmail(),
+                    message.getQuantity(),
+                    message.getProductID(),
+                    message.getLocation(),
+                    props
+            );
+            System.out.println("Order canceled.");
+          }
       }
-      a = ReceiveMail.isCancel;
-      if(a){
-        EmailSend.sendConfirmation(
-                message.getEmail(),
-                props
-        );
-      }
+
       TimeUnit.SECONDS.sleep(5);
     }
   }
