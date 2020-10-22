@@ -4,8 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Date;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,7 +57,6 @@ public class Main {
     //info.dailyReport(orderDriver, productDriver);
 
     while (true) {
-      boolean a;
 
       try {
         receiver = new ReceiveMail(host, mailStoreType, username, password);
@@ -66,47 +64,62 @@ public class Main {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      a = ReceiveMail.isOrder;
+
 
         assert messages != null;
         for (OrderDbEntry message : messages) {
           System.out.println(message);
           System.out.println(message.getDate());
-          if(a){
-          System.out.println("Placing the order...");
-          orderDriver.createEntry(
-                  message.getEmail(),
-                  message.getDate(),
-                  message.getProductID(),
-                  message.getQuantity(),
-                  "processing"
-          );
-          System.out.println("Order placed.");
-          //send email confirmation
-          EmailSend.sendConfirmation(
-                  message.getEmail(),
-                  message.getQuantity(),
-                  message.getProductID(),
-                  message.getLocation(),
-                  props
-          );
-        }
-          a = ReceiveMail.isCancel;
-          if(a){
-            EmailSend.sendCancellation(
+         boolean a = ReceiveMail.isOrder;
+         boolean b = ReceiveMail.isCancel;
+
+          if(a) {
+
+            System.out.println("Placing the order...");
+            orderDriver.createEntry(
+                    message.getEmail(),
+                    message.getDate(),
+                    message.getProductID(),
+                    message.getQuantity(),
+                    "processing"
+            );
+            System.out.println("Order placed.");
+            //send email confirmation
+            EmailSend.sendConfirmation(
                     message.getEmail(),
                     message.getQuantity(),
                     message.getProductID(),
                     message.getLocation(),
                     props
             );
-            System.out.println("Order canceled.");
+
+          }
+         else if(b)
+          {
+            if(orderDriver.deleteOrder(message.getEmail(),message.getProductID()))
+            {
+              EmailSend.sendCancellation(
+                      message.getEmail(),
+                      message.getQuantity(),
+                      message.getProductID(),
+                      message.getLocation(),
+                      props
+              );
+              System.out.println("Order canceled.");
+            }
           }
       }
 
       TimeUnit.SECONDS.sleep(5);
     }
   }
+
+
+
+
+
+
+
 
   public static Properties getProperties(String fileName) {
     String dir = System.getProperty("user.dir");

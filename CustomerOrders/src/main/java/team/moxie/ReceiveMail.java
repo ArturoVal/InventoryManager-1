@@ -65,6 +65,7 @@ public class ReceiveMail {
       Date date = message.getSentDate();
       if(sub.equals("PLACE ORDER"))   isOrder=true;
       else if(sub.equals("CANCEL ORDER")) isCancel = true;
+      sub = null;
 
         entry[1] = email;
         String[] content = bp.getContent().toString().toUpperCase().split(",");
