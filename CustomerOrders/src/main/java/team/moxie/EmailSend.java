@@ -55,7 +55,6 @@ public class EmailSend {
           String email,
           int quantity,
           String ID,
-          String address,
           Properties props
   ) {
     //send email cancellation
@@ -76,6 +75,27 @@ public class EmailSend {
     }
   }
 
+  public static void sendCancelError(String email,
+                                     int quantity,
+                                     String ID,
+                                     Properties props)
+  {
+    EmailSend.SMTP_setup();
+    String cx =
+            "Hi, " +
+                    email +
+                    ". We were unable to cancel your order of " +
+                    quantity +
+                    " of " +
+                    ID;
+
+    try {
+      EmailSend.createEmail(email, "Cancellation Error", cx);
+      EmailSend.sendEmail(props);
+    } catch (MessagingException e) {
+      e.printStackTrace();
+    }
+  }
 
   //passed an address and message to create new email object
   public static void createEmail(String address, String sub, String message)

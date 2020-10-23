@@ -103,10 +103,18 @@ public class Main {
                       message.getEmail(),
                       message.getQuantity(),
                       message.getProductID(),
-                      message.getLocation(),
                       props
               );
               System.out.println("Order canceled.");
+            }
+            else {
+              EmailSend.sendCancelError(
+                      message.getEmail(),
+                      message.getQuantity(),
+                      message.getProductID(),
+                      props
+              );
+              System.out.println("Unable to cancel.");
             }
           }
       }
