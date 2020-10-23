@@ -9,7 +9,7 @@ import javax.mail.*;
 public class ReceiveMail {
   private final Folder emailFolder;
   private final Store emailStore;
-  static boolean isOrder=false;
+  static boolean isOrder=false;     //used to determine status of email order
   static boolean isCancel=false;
 
   public ReceiveMail(
@@ -63,9 +63,8 @@ public class ReceiveMail {
       int emailIndex = email.indexOf("<") + 1;
       email = email.substring(emailIndex, email.length() - 1);
       Date date = message.getSentDate();
-      if(sub.equals("PLACE ORDER"))   isOrder=true;
-      else if(sub.equals("CANCEL ORDER")) isCancel = true;
-      sub = null;
+      isOrder= sub.equals("PLACE ORDER");       //looks at subject of email to determine what user wants to do
+      isCancel = sub.equals("CANCEL ORDER");
 
         entry[1] = email;
         String[] content = bp.getContent().toString().toUpperCase().split(",");

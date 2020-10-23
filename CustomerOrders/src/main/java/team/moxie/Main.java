@@ -70,10 +70,10 @@ public class Main {
         for (OrderDbEntry message : messages) {
           System.out.println(message);
           System.out.println(message.getDate());
-         boolean a = ReceiveMail.isOrder;
-         boolean b = ReceiveMail.isCancel;
+         boolean placeOrder = ReceiveMail.isOrder;
+         boolean cancelOrder = ReceiveMail.isCancel;
 
-          if(a) {
+          if(placeOrder) {
 
             System.out.println("Placing the order...");
             orderDriver.createEntry(
@@ -94,8 +94,9 @@ public class Main {
             );
 
           }
-         else if(b)
+         else if(cancelOrder)
           {
+            System.out.println("Canceling order...");
             if(orderDriver.deleteOrder(message.getEmail(),message.getProductID()))
             {
               EmailSend.sendCancellation(

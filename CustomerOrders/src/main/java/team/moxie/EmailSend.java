@@ -23,6 +23,7 @@ public class EmailSend {
     emailProperties.put("mail.smtp.starttls.enable", "True");
   }
 
+  /**sends email to user confirming their order**/
   public static void sendConfirmation(
     String email,
     int quantity,
@@ -49,6 +50,7 @@ public class EmailSend {
     }
   }
 
+  /**sends email to user confirming the cancellation of their order**/
   public static void sendCancellation(
           String email,
           int quantity,
@@ -61,7 +63,7 @@ public class EmailSend {
     String cx =
             "Hi, " +
             email +
-            ". We will cancel your order of " +
+            ". We have canceled your order of " +
             quantity +
             " of " +
             ID;

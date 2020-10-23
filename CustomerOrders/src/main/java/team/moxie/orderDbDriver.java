@@ -276,7 +276,11 @@ public class OrderDbDriver {
     return array;
   }
 
-
+/**
+ * used to delete entries from the order database.
+ * needs the users email and the product they ordered
+ * to delete order from the database
+ * **/
   public boolean deleteOrder(String user, String id) {
     // cannot be longer than 12 char
     if (id.length() > 12) return false;
