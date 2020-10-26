@@ -14,6 +14,7 @@ import me.tongfei.progressbar.*;
 public class OrderDbDriver {
   /**
    * The connection to the database
+   *
    * @see DriverManager
    */
   private final Connection dbConn;
@@ -21,22 +22,22 @@ public class OrderDbDriver {
   /**
    * Constructor for DbDriver
    *
-   * @param hostIP        IP of the database host
-   * @param hostPort      Port of the database
-   * @param databaseName  Name of the database
-   * @param dbUser        The username to be used
-   * @param dbPass        The password for the user
+   * @param hostIP       IP of the database host
+   * @param hostPort     Port of the database
+   * @param databaseName Name of the database
+   * @param dbUser       The username to be used
+   * @param dbPass       The password for the user
    * @throws SQLException Thrown if the database connection fails
    */
 
   public OrderDbDriver(
-    String hostIP,
-    String hostPort,
-    String databaseName,
-    String dbUser,
-    String dbPass
+          String hostIP,
+          String hostPort,
+          String databaseName,
+          String dbUser,
+          String dbPass
   )
-    throws SQLException {
+          throws SQLException {
     // Create the database connection
 
     try {
@@ -52,17 +53,17 @@ public class OrderDbDriver {
   /**
    * A helper function to format the info into a connection string
    *
-   * @param hostIP        IP of the database host
-   * @param hostPort      Port of the database
-   * @param databaseName  Name of the database
+   * @param hostIP       IP of the database host
+   * @param hostPort     Port of the database
+   * @param databaseName Name of the database
    * @return A formated connection string
    * @see OrderDbDriver
    * @see DriverManager
    */
   private String buildConnString(
-    String hostIP,
-    String hostPort,
-    String databaseName
+          String hostIP,
+          String hostPort,
+          String databaseName
   ) {
     return "jdbc:mysql://" + hostIP + ":" + hostPort + "/" + databaseName;
   }
@@ -70,7 +71,7 @@ public class OrderDbDriver {
   public OrderDbEntry[] getOrdersByDate(java.util.Date dateOfOrders) {
     try {
       PreparedStatement statement = dbConn.prepareStatement(
-        "SELECT * FROM orders WHERE date=?"
+              "SELECT * FROM orders WHERE date=?"
       );
       statement.setDate(1, new java.sql.Date(dateOfOrders.getTime()));
 
@@ -86,7 +87,7 @@ public class OrderDbDriver {
   public OrderDbEntry[] getOrdersByStatus(String status) {
     try {
       PreparedStatement statement = dbConn.prepareStatement(
-        "SELECT * FROM orders WHERE status=?"
+              "SELECT * FROM orders WHERE status=?"
       );
       statement.setString(1, status);
 
@@ -104,11 +105,11 @@ public class OrderDbDriver {
   }
 
   public int createEntry(
-    String email,
-    Date date,
-    String productID,
-    int quantity,
-    String status
+          String email,
+          Date date,
+          String productID,
+          int quantity,
+          String status
   ) {
     // cannot be longer than 12 char
     if (productID.length() > 12) return 0;
@@ -118,7 +119,7 @@ public class OrderDbDriver {
     try {
       //create and execute the statement
       PreparedStatement statement = dbConn.prepareStatement(
-        "insert into inv.orders(cust_email, date, product_id, product_quantity, status) values (?,?,?,?,?)"
+              "insert into inv.orders(cust_email, date, product_id, product_quantity, status) values (?,?,?,?,?)"
       );
 
       java.sql.Date sqlDate = new java.sql.Date(date.getTime());
@@ -155,7 +156,7 @@ public class OrderDbDriver {
 
       //delete from inv.inventory where product_id='2FT57YS7CM97';
       int result = statement.executeUpdate(
-        String.format("DELETE FROM inv.inventory WHERE product_id='%s'", id)
+              String.format("DELETE FROM inv.inventory WHERE product_id='%s'", id)
       );
 
       return result == 1;
@@ -169,7 +170,7 @@ public class OrderDbDriver {
   /**
    * Updates the entry with given ID and info
    *
-   * @param id             Product ID
+   * @param id Product ID
    * @return boolean whether the operation completed successfully
    */
   public boolean updateStatus(int id, String status) {
@@ -178,7 +179,7 @@ public class OrderDbDriver {
     try {
       //create and execute the statement
       PreparedStatement statement = dbConn.prepareStatement(
-        "UPDATE orders set status=? where orderID=?"
+              "UPDATE orders set status=? where orderID=?"
       );
       statement.setString(1, status);
       statement.setInt(2, id);
@@ -207,7 +208,7 @@ public class OrderDbDriver {
       //create and execute the statement
       Statement statement = dbConn.createStatement();
       ResultSet resultSet = statement.executeQuery(
-        "select * from `inv`.`orders`"
+              "select * from `inv`.`orders`"
       );
 
       // In this case there should only ever be one as the IDs are set to be unique
@@ -222,13 +223,13 @@ public class OrderDbDriver {
         int ID = resultSet.getInt("orderID");
 
         OrderDbEntry order = new OrderDbEntry(
-          date,
-          email,
-          shippingAddress,
-          productId,
-          quantity,
-          resultSet.getString("status"),
-          ID
+                date,
+                email,
+                shippingAddress,
+                productId,
+                quantity,
+                resultSet.getString("status"),
+                ID
         );
         order.setStatus(status);
 
@@ -247,20 +248,20 @@ public class OrderDbDriver {
 
   // Takes a result set and turns it into an array
   private OrderDbEntry[] extractEntries(ResultSet resultSet)
-    throws SQLException {
+          throws SQLException {
     long start = System.nanoTime();
 
     LinkedList<OrderDbEntry> arrayOfEntries = new LinkedList<>();
     int i = 0;
     while (resultSet.next()) {
       OrderDbEntry tmpEntry = new OrderDbEntry(
-        resultSet.getDate("date"),
-        resultSet.getString("cust_email"),
-        resultSet.getString("cust_location"),
-        resultSet.getString("product_id"),
-        resultSet.getInt("product_quantity"),
-        resultSet.getString("status"),
-        resultSet.getInt("orderID")
+              resultSet.getDate("date"),
+              resultSet.getString("cust_email"),
+              resultSet.getString("cust_location"),
+              resultSet.getString("product_id"),
+              resultSet.getInt("product_quantity"),
+              resultSet.getString("status"),
+              resultSet.getInt("orderID")
       );
       arrayOfEntries.add(tmpEntry);
       i++;
@@ -273,5 +274,33 @@ public class OrderDbDriver {
     System.out.println("Extracted " + i + " entries in " + elapsed + " s");
 
     return array;
+  }
+
+/**
+ * used to delete entries from the order database.
+ * needs the users email and the product they ordered
+ * to delete order from the database
+ * **/
+  public boolean deleteOrder(String user, String id) {
+    // cannot be longer than 12 char
+    if (id.length() > 12) return false;
+
+    try {
+      //create and execute the statement
+      Statement statement = dbConn.createStatement();
+
+      //delete from inv.inventory where product_id='2FT57YS7CM97';
+      int result = statement.executeUpdate(
+              String.format("DELETE FROM inv.orders WHERE product_id='%s' AND cust_email='%s'", id, user)
+
+      );
+      System.out.println("update result: ");
+      System.out.println(result);
+      return result == 1;
+    } catch (Exception ex) {
+      // Print out the reason and return null
+      System.out.println(ex.toString());
+      return false;
+    }
   }
 }

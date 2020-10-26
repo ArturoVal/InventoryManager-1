@@ -9,6 +9,8 @@ import javax.mail.*;
 public class ReceiveMail {
   private final Folder emailFolder;
   private final Store emailStore;
+  static boolean isOrder=false;     //used to determine status of email order
+  static boolean isCancel=false;
 
   public ReceiveMail(
     String pop3Host,
@@ -54,57 +56,63 @@ public class ReceiveMail {
       System.out.println(bp.toString());
       System.out.println("---------------------------------");
       System.out.println("Email Number " + (numberOfEntries + 1));
-      System.out.println("Subject: " + message.getSubject());
+      String sub = message.getSubject().toUpperCase();
+      System.out.println("Subject: " + sub);
       Address[] address = message.getFrom();
       String email = address[0].toString();
       int emailIndex = email.indexOf("<") + 1;
       email = email.substring(emailIndex, email.length() - 1);
       Date date = message.getSentDate();
-      //entry[0] = date;
-      entry[1] = email;
-      String[] content = bp.getContent().toString().toUpperCase().split(",");
+      isOrder= sub.equals("PLACE ORDER");       //looks at subject of email to determine what user wants to do
+      isCancel = sub.equals("CANCEL ORDER");
 
-      /*
-       * The following foreach statement is used for formatting each string within an "entry" array.
-       * It removes "\n" endings, other special characters, and white spaces from the "content" array
-       * for formatting consistency." It then stores the address, supply id, and quantity ordered and saves
-       * them in the "entry" array under indices 2,3,and 4.
-       */
-      int counter = 2;
+        entry[1] = email;
+        String[] content = bp.getContent().toString().toUpperCase().split(",");
 
-      for (String each : content) {
-        if (counter == 2) {
-          each = each.replace("\n", "");
-        } else if (counter == 4) {
-          System.out.println(each);
-          each = each.replaceAll("[^\\d.]", "");
-        } else {
-          each = each.replace(" ", "");
-          each = each.replace("\n", "");
-          each = each.replace("[^\\x00-\\x7F]", "");
-          each = each.replace("[\\p{Cntrl}&&[^\r\n\t]]", "");
-          each = each.replace("\\p{C}", "");
+        /*
+         * The following foreach statement is used for formatting each string within an "entry" array.
+         * It removes "\n" endings, other special characters, and white spaces from the "content" array
+         * for formatting consistency." It then stores the address, supply id, and quantity ordered and saves
+         * them in the "entry" array under indices 2,3,and 4.
+         */
+        int counter = 2;
+
+        for (String each : content) {
+          if (counter == 2) {
+            each = each.replace("\n", "");
+          } else if (counter == 4) {
+            System.out.println(each);
+            each = each.replaceAll("[^\\d.]", "");
+          } else {
+            each = each.replace(" ", "");
+            each = each.replace("\n", "");
+            each = each.replace("[^\\x00-\\x7F]", "");
+            each = each.replace("[\\p{Cntrl}&&[^\r\n\t]]", "");
+            each = each.replace("\\p{C}", "");
+          }
+          entry[counter] = each;
+          counter++;
         }
-        entry[counter] = each;
-        counter++;
+
+        int Quantity = Integer.parseInt(entry[4]);
+
+        OrderDbEntry dbEntry = new OrderDbEntry(
+                date,
+                entry[1],
+                entry[2],
+                entry[3],
+                Quantity
+        );
+
+        //Adds each order to the ArrayList for database updates.
+        entries.add(dbEntry);
       }
 
-      int Quantity = Integer.parseInt(entry[4]);
 
-      OrderDbEntry dbEntry = new OrderDbEntry(
-        date,
-        entry[1],
-        entry[2],
-        entry[3],
-        Quantity
-      );
-
-      //Adds each order to the ArrayList for database updates.
-      entries.add(dbEntry);
-    }
 
     emailFolder.close(false);
     emailStore.close();
     return entries;
   }
+
 }

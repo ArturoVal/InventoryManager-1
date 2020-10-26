@@ -23,6 +23,7 @@ public class EmailSend {
     emailProperties.put("mail.smtp.starttls.enable", "True");
   }
 
+  /**sends email to user confirming their order**/
   public static void sendConfirmation(
     String email,
     int quantity,
@@ -43,6 +44,53 @@ public class EmailSend {
       address;
     try {
       EmailSend.createEmail(email, "Order confirmation", cx);
+      EmailSend.sendEmail(props);
+    } catch (MessagingException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**sends email to user confirming the cancellation of their order**/
+  public static void sendCancellation(
+          String email,
+          int quantity,
+          String ID,
+          Properties props
+  ) {
+    //send email cancellation
+    EmailSend.SMTP_setup();
+    String cx =
+            "Hi, " +
+            email +
+            ". We have canceled your order of " +
+            quantity +
+            " of " +
+            ID;
+
+    try {
+      EmailSend.createEmail(email, "Cancellation confirmation", cx);
+      EmailSend.sendEmail(props);
+    } catch (MessagingException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCancelError(String email,
+                                     int quantity,
+                                     String ID,
+                                     Properties props)
+  {
+    EmailSend.SMTP_setup();
+    String cx =
+            "Hi, " +
+                    email +
+                    ". We were unable to cancel your order of " +
+                    quantity +
+                    " of " +
+                    ID;
+
+    try {
+      EmailSend.createEmail(email, "Cancellation Error", cx);
       EmailSend.sendEmail(props);
     } catch (MessagingException e) {
       e.printStackTrace();
