@@ -10,40 +10,37 @@ public class MailOrder {
     //java.util.Date date = Calendar.getInstance().getTime();
 
     public static void checkMail(OrderDbDriver orderDriver, Properties props) {
+        //connect to gmail server
         assert props != null;
         String host = props.getProperty("emailUrl");
         String mailStoreType = props.getProperty("serverType");
         String username = props.getProperty("gmailName");
         String password = props.getProperty("gmailPass");
 
-        try {
+
+        try {//read all email from server
             receiver = new ReceiveMail(host, mailStoreType, username, password);
             messages = receiver.getMessages();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         assert messages != null;
-        for (OrderDbEntry message : messages) {
-            System.out.println(message);
+        for (OrderDbEntry message : messages) {             //for all emails:
+            System.out.println(message);                    //print contents of email
             System.out.println(message.getDate());
-            boolean placeOrder = ReceiveMail.isOrder;
-            boolean cancelOrder = ReceiveMail.isCancel;
+            boolean placeOrder = ReceiveMail.isOrder;       //determine if email is
+            boolean cancelOrder = ReceiveMail.isCancel;     // order or cancellation
 
-            if (placeOrder) {
-
+            if (placeOrder) {                               // for order:
                 System.out.println("Placing the order...");
-                orderDriver.createEntry(
+                orderDriver.createEntry(                    //create order database entry
                         message.getEmail(),
                         message.getDate(),
                         message.getProductID(),
                         message.getQuantity(),
-                        "processing"
-                );
+                        "processing");
                 System.out.println("Order placed.");
-                //send email confirmation
-                EmailSend.sendConfirmation(
+                EmailSend.sendConfirmation(                 //send email confirmation
                         message.getEmail(),
                         message.getQuantity(),
                         message.getProductID(),
@@ -51,17 +48,20 @@ public class MailOrder {
                         props
                 );
 
-            } else if (cancelOrder) {
+            }
+            else if (cancelOrder) {                                 // for cancellation of order:
                 System.out.println("Canceling order...");
-                if (orderDriver.deleteOrder(message.getEmail(), message.getProductID())) {
-                    EmailSend.sendCancellation(
+                if (orderDriver.deleteOrder(message.getEmail(),     //delete order form database
+                        message.getProductID()))                    //if order is deleted from the order database
+                {
+                    EmailSend.sendCancellation(                     //send email confirmation
                             message.getEmail(),
                             message.getQuantity(),
                             message.getProductID(),
                             props
                     );
                     System.out.println("Order canceled.");
-                } else {
+                } else {                                            //if order cannot be deleted from database
                     EmailSend.sendCancelError(
                             message.getEmail(),
                             message.getQuantity(),

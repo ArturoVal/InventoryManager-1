@@ -18,20 +18,10 @@ public class Main {
   private static OrderDbDriver orderDriver;
   private static invDbDriver productDriver;
 
-  //private static final NumberFormat CURRENCY = NumberFormat.getCurrencyInstance();
   public static void main(String[] args)
     throws InterruptedException, SQLException {
     Properties props = getProperties("target\\classes\\config.properties");
-
-          assert props != null;
-          String host = props.getProperty("emailUrl");
-          String mailStoreType = props.getProperty("serverType");
-          String username = props.getProperty("gmailName");
-          String password = props.getProperty("gmailPass");
-
-      //    ReceiveMail receiver;
-      //    ArrayList<OrderDbEntry> messages = null;
-    java.util.Date date = Calendar.getInstance().getTime();
+    //java.util.Date date = Calendar.getInstance().getTime();
 
     orderDriver =
       new OrderDbDriver(
@@ -54,18 +44,15 @@ public class Main {
     //companyInfo info = new companyInfo();
     //info.dailyReport(orderDriver, productDriver);
 
+    /**
+     * checks email server every 5 seconds
+     * handles all email orders and cancellations
+    **/
     while (true) {
       MailOrder.checkMail(orderDriver,  props);
       TimeUnit.SECONDS.sleep(5);
     }
   }
-
-
-
-
-
-
-
 
   public static Properties getProperties(String fileName) {
     String dir = System.getProperty("user.dir");

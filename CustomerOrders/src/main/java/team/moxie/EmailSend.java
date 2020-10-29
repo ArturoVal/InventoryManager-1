@@ -23,7 +23,12 @@ public class EmailSend {
     emailProperties.put("mail.smtp.starttls.enable", "True");
   }
 
-  /**sends email to user confirming their order**/
+  /**
+   * send email functions prepare contents of email to send
+   * they create a string to use as email message
+   * passes subject, message and address to email send
+   * **/
+  //sends email to user confirming their order
   public static void sendConfirmation(
     String email,
     int quantity,
@@ -31,7 +36,6 @@ public class EmailSend {
     String address,
     Properties props
   ) {
-    //send email confirmation
     EmailSend.SMTP_setup();
     String cx =
       "Hi, " +
@@ -50,14 +54,13 @@ public class EmailSend {
     }
   }
 
-  /**sends email to user confirming the cancellation of their order**/
+  //sends email to user confirming the cancellation of their order
   public static void sendCancellation(
           String email,
           int quantity,
           String ID,
           Properties props
   ) {
-    //send email cancellation
     EmailSend.SMTP_setup();
     String cx =
             "Hi, " +
@@ -74,7 +77,7 @@ public class EmailSend {
       e.printStackTrace();
     }
   }
-
+  //sends email to user if their order could not be cancelled
   public static void sendCancelError(String email,
                                      int quantity,
                                      String ID,
