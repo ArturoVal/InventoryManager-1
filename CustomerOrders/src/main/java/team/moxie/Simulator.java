@@ -54,6 +54,7 @@ public class Simulator {
         //split date into 3 strings
         String date[] = data[0].split("-");
         //convert strings into integers
+
         int year = Integer.parseInt(date[0]);
         int month = Integer.parseInt(date[1]);
         //arturo - in this class Zero is january so have to decrease month by one
@@ -61,11 +62,14 @@ public class Simulator {
         month--;
         int day = Integer.parseInt(date[2]);
 
+
         //create date object using the integers
         // Dustin - Using the Calender object instead as the Date(year,month,day) is deprecated
         Calendar calDate = Calendar.getInstance();
+
         //arturo - removed the hour of day, minute, and second since we don't use them.
         calDate.set(year, month, day);
+
         Date date1 = calDate.getTime();
 
         String email = data[1];

@@ -13,15 +13,15 @@ public class OrderDbEntry {
 
   private String[] statuses = { "ordered", "processing", "complete" };
 
-
   public OrderDbEntry(
-          Date date,
-          String email,
-          String shippingAddress,
-          String productID,
-          int quantity,
-          String status,
-          int ID) {
+    Date date,
+    String email,
+    String shippingAddress,
+    String productID,
+    int quantity,
+    String status,
+    int ID
+  ) {
     this.date = date;
     this.email = email;
     this.location = shippingAddress;
@@ -32,12 +32,13 @@ public class OrderDbEntry {
   }
 
   public OrderDbEntry(
-          Date date,
-          String email,
-          String shippingAddress,
-          String productID,
-          int quantity,
-          int ID) {
+    Date date,
+    String email,
+    String shippingAddress,
+    String productID,
+    int quantity,
+    int ID
+  ) {
     this.date = date;
     this.email = email;
     this.location = shippingAddress;
@@ -48,12 +49,13 @@ public class OrderDbEntry {
   }
 
   public OrderDbEntry(
-          Date date,
-          String email,
-          String shippingAddress,
-          String productID,
-          int quantity,
-          String status) {
+    Date date,
+    String email,
+    String shippingAddress,
+    String productID,
+    int quantity,
+    String status
+  ) {
     this.date = date;
     this.email = email;
     this.location = shippingAddress;
@@ -64,11 +66,12 @@ public class OrderDbEntry {
   }
 
   public OrderDbEntry(
-          Date date,
-          String email,
-          String shippingAddress,
-          String productID,
-          int quantity) {
+    Date date,
+    String email,
+    String shippingAddress,
+    String productID,
+    int quantity
+  ) {
     this.date = date;
     this.email = email;
     this.location = shippingAddress;
@@ -117,13 +120,21 @@ public class OrderDbEntry {
   public void setQuantity(int quantity) {
     this.quantity = quantity;
   }
-  
-  public String getStatus(){return status;}
-  
-  public void setStatus(String status){ this.status = status;}
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
 
   public int getID() {
     return ID;
+  }
+
+  public void setID(int ID) {
+    this.ID = ID;
   }
 
   public String toString() {
@@ -136,7 +147,7 @@ public class OrderDbEntry {
       email +
       "\n" +
       "Shipping Address: " +
-              location +
+      location +
       "\n" +
       "Product ID: " +
       productID +
@@ -146,8 +157,10 @@ public class OrderDbEntry {
       "\n" +
       "Status: " +
       status +
+      "\n" +
+      "ID: " +
+      ID +
       "\n"
     );
   }
-  
 }
