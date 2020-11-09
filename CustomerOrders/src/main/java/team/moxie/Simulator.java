@@ -5,6 +5,7 @@ import static team.moxie.Main.getProperties;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -34,7 +35,12 @@ public class Simulator {
 
     try {
       //Set up scanner and hardcode csv file with orders
-      Scanner in = new Scanner(
+      //Ask for bulk order csv file name
+      System.out.println("Enter name of file for bulk order: ");
+      Scanner in = new Scanner(System.in);
+      String csvFile = in.nextLine();
+
+      in = new Scanner(
         new FileInputStream("customer_orders_A_team3.csv")
       );
       String line;
@@ -44,8 +50,6 @@ public class Simulator {
       // Use the order processor
 
       OrderProcessor processor = new OrderProcessor(invDbDriver, orderDriver);
-
-      LinkedList<OrderDbEntry> allOrders = new LinkedList<>();
 
       //go through each line and create the orderDbEntry object
       while (in.hasNextLine()) {
@@ -77,23 +81,26 @@ public class Simulator {
         String id = data[3];
         String amount = data[4];
         int quantity = Integer.parseInt(amount);
-        //call orderDbEntry to create a new entry
-        OrderDbEntry entry = new OrderDbEntry(
-          date1,
-          email,
-          address,
-          id,
-          quantity,
-          "processing"
-        );
-        allOrders.add(entry);
+        java.sql.Date sqlDate = new java.sql.Date(date1.getTime());
+        
+
+        String sql = "INSERT INTO Sim_Orders (date, cust_email, cust_location, product_id, product_quantity, status) VALUES (?)";
+        PreparedStatement statement = orderDriver.getDbConn().prepareStatement(sql);
+        statement.setDate(1, sqlDate);
+        statement.setString(2, email);
+        statement.setString(3, address);
+        statement.setString(4, id);
+        statement.setInt(5, quantity);
+        statement.setString(6, "Processing");
+
+
+
 
         orderNumber++;
       }
       in.close();
       System.out.println("Order Number: " + orderNumber + "\n");
       long begin = System.nanoTime();
-      processor.processOrders(processor.loadOrders(allOrders));
       long complete = System.nanoTime();
 
       double elapsed = (double) (complete - begin) / 1000000000;
